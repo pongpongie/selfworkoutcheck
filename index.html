@@ -1,881 +1,1928 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#EFEEEB">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="트레이닝">
-<link rel="manifest" href="./manifest.json">
-<link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
-<title>시현 트레이닝</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#EFEEEB; --card:#FFFFFF;
-    --ink:#16191E; --ink-2:#3D444E; --ink-3:#616973;
-    --line:#D6D4CF; --accent:#B72B27;
-    --purple:#7B3FA0;
-    --safe-b:env(safe-area-inset-bottom,0px);
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%;background:var(--paper)}
-  body{
-    background:var(--paper);color:var(--ink);
-    font-family:"IBM Plex Sans KR",system-ui,sans-serif;line-height:1.5;
-    padding:0 0 calc(150px + var(--safe-b));
-  }
-  input,button,select{font-family:inherit}
-  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#EFEEEB" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="트레이닝" />
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <title>트레이닝</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #efeeeb;
+        --card: #ffffff;
+        --ink: #16191e;
+        --ink-2: #3d444e;
+        --ink-3: #616973;
+        --line: #d6d4cf;
+        --accent: #b72b27;
+        --purple: #7b3fa0;
+        --safe-b: env(safe-area-inset-bottom, 0px);
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+        background: var(--paper);
+      }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "IBM Plex Sans KR", system-ui, sans-serif;
+        line-height: 1.5;
+        padding: 0 0 calc(150px + var(--safe-b));
+      }
+      input,
+      button,
+      select {
+        font-family: inherit;
+      }
+      .wrap {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
 
-  /* ---------- top bar ---------- */
-  .top{
-    position:sticky;top:0;z-index:40;background:var(--paper);
-    border-bottom:1px solid var(--line);
-    padding-top:env(safe-area-inset-top,0px);
-  }
-  .brand{display:flex;align-items:baseline;gap:10px;padding:14px 16px 8px;max-width:720px;margin:0 auto}
-  .brand h1{font-family:"Black Han Sans",sans-serif;font-size:20px;line-height:1}
-  .brand .today{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-3)}
-  .tabs{display:flex;gap:6px;padding:0 16px 10px;max-width:720px;margin:0 auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab{
-    flex:none;padding:8px 13px;border:1px solid var(--line);background:var(--card);
-    border-radius:20px;font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;
-    color:var(--ink-3);cursor:pointer;white-space:nowrap;
-  }
-  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+      /* ---------- top bar ---------- */
+      .top {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        background: var(--paper);
+        border-bottom: 1px solid var(--line);
+        padding-top: env(safe-area-inset-top, 0px);
+      }
+      .brand {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        padding: 14px 16px 8px;
+        max-width: 720px;
+        margin: 0 auto;
+      }
+      .brand h1 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 20px;
+        line-height: 1;
+      }
+      .brand .today {
+        margin-left: auto;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-3);
+      }
+      .tabs {
+        display: flex;
+        gap: 6px;
+        padding: 0 16px 10px;
+        max-width: 720px;
+        margin: 0 auto;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .tab {
+        flex: none;
+        padding: 8px 13px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        border-radius: 20px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .tab.on {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
 
-  /* ---------- alert ---------- */
-  .alert{display:none}
-  .alert.on{
-    display:block;margin-top:14px;padding:11px 13px;border-radius:6px;
-    font-size:13px;line-height:1.55;cursor:pointer;
-  }
-  .alert.bad{background:#FBEAE9;border:1px solid #E0A9A6;color:#7A211E}
-  .alert.good{background:#E9F3EC;border:1px solid #A6CDB4;color:#1C5537}
+      /* ---------- alert ---------- */
+      .alert {
+        display: none;
+      }
+      .alert.on {
+        display: block;
+        margin-top: 14px;
+        padding: 11px 13px;
+        border-radius: 6px;
+        font-size: 13px;
+        line-height: 1.55;
+        cursor: pointer;
+      }
+      .alert.bad {
+        background: #fbeae9;
+        border: 1px solid #e0a9a6;
+        color: #7a211e;
+      }
+      .alert.good {
+        background: #e9f3ec;
+        border: 1px solid #a6cdb4;
+        color: #1c5537;
+      }
 
-  /* ---------- day ---------- */
-  .dayhead{padding:22px 0 6px}
-  .dayhead .num{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--accent)}
-  .dayhead h2{font-family:"Black Han Sans",sans-serif;font-size:30px;line-height:1.05;margin-top:4px}
-  .dayhead p{font-size:13px;color:var(--ink-3);margin-top:4px}
+      /* ---------- day ---------- */
+      .dayhead {
+        padding: 22px 0 6px;
+      }
+      .dayhead .num {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        color: var(--accent);
+      }
+      .dayhead h2 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 30px;
+        line-height: 1.05;
+        margin-top: 4px;
+      }
+      .dayhead p {
+        font-size: 13px;
+        color: var(--ink-3);
+        margin-top: 4px;
+      }
 
-  .grp{margin-top:14px}
-  .grp-label{
-    font-family:"JetBrains Mono",monospace;font-weight:700;font-size:11px;
-    letter-spacing:.12em;color:var(--ink-3);margin-bottom:6px;padding-left:2px;
-  }
-  .grp.warm .grp-label{color:var(--ink-3)}
-  .grp.circuit .grp-label{color:var(--purple)}
+      .grp {
+        margin-top: 14px;
+      }
+      .grp-label {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        color: var(--ink-3);
+        margin-bottom: 6px;
+        padding-left: 2px;
+      }
+      .grp.warm .grp-label {
+        color: var(--ink-3);
+      }
+      .grp.circuit .grp-label {
+        color: var(--purple);
+      }
 
-  .card{
-    background:var(--card);border:1px solid var(--line);border-radius:6px;
-    margin-bottom:8px;overflow:hidden;
-  }
-  .grp.circuit .card{border-left:3px solid var(--purple)}
-  .grp.warm .card{border-left:3px solid var(--ink-3)}
-  .grp.main .card{border-left:3px solid var(--accent)}
+      .card {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        overflow: hidden;
+      }
+      .grp.circuit .card {
+        border-left: 3px solid var(--purple);
+      }
+      .grp.warm .card {
+        border-left: 3px solid var(--ink-3);
+      }
+      .grp.main .card {
+        border-left: 3px solid var(--accent);
+      }
 
-  .row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:13px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
-  .row:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-  .nm{font-size:16px;font-weight:600;align-self:center}
-  .nm small{font-weight:400;color:var(--ink-3);font-size:12px}
-  .ld{font-family:"JetBrains Mono",monospace;font-weight:700;font-size:17px;text-align:right;align-self:center;white-space:nowrap}
-  .ld small{font-size:11px;color:var(--ink-3);font-weight:400}
-  .mt{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-2)}
-  .rt{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);text-align:right}
-  .last{
-    grid-column:1/-1;margin-top:6px;font-family:"JetBrains Mono",monospace;font-size:11px;
-    color:var(--ink-3);background:rgba(22,25,30,.04);padding:4px 7px;border-radius:3px;
-  }
-  .card.done .nm{text-decoration:line-through;text-decoration-thickness:2px}
-  .card.done{opacity:.55}
+      .row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 12px;
+        padding: 13px 14px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .row:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+      .nm {
+        font-size: 16px;
+        font-weight: 600;
+        align-self: center;
+      }
+      .nm small {
+        font-weight: 400;
+        color: var(--ink-3);
+        font-size: 12px;
+      }
+      .ld {
+        font-family: "JetBrains Mono", monospace;
+        font-weight: 700;
+        font-size: 17px;
+        text-align: right;
+        align-self: center;
+        white-space: nowrap;
+      }
+      .ld small {
+        font-size: 11px;
+        color: var(--ink-3);
+        font-weight: 400;
+      }
+      .mt {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .rt {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+        text-align: right;
+      }
+      .last {
+        grid-column: 1/-1;
+        margin-top: 6px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+        background: rgba(22, 25, 30, 0.04);
+        padding: 4px 7px;
+        border-radius: 3px;
+      }
+      .card.done .nm {
+        text-decoration: line-through;
+        text-decoration-thickness: 2px;
+      }
+      .card.done {
+        opacity: 0.55;
+      }
 
-  /* plates */
-  .plates{grid-column:1/-1;display:flex;align-items:center;gap:3px;margin-top:8px;height:32px}
-  .bar{width:18px;height:4px;background:#8D949C;border-radius:2px;flex:none}
-  .collar{width:5px;height:13px;background:#6F767E;border-radius:1px;flex:none}
-  .plate{width:13px;border-radius:2px;flex:none;display:flex;align-items:center;justify-content:center}
-  .plate b{font-family:"JetBrains Mono",monospace;font-size:9px;font-weight:700;color:#fff;transform:rotate(-90deg);white-space:nowrap}
-  .plate.lt b{color:#16191E}
-  .plabel{margin-left:9px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3)}
+      /* plates */
+      .plates {
+        grid-column: 1/-1;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        margin-top: 8px;
+        height: 32px;
+      }
+      .bar {
+        width: 18px;
+        height: 4px;
+        background: #8d949c;
+        border-radius: 2px;
+        flex: none;
+      }
+      .collar {
+        width: 5px;
+        height: 13px;
+        background: #6f767e;
+        border-radius: 1px;
+        flex: none;
+      }
+      .plate {
+        width: 13px;
+        border-radius: 2px;
+        flex: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .plate b {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 9px;
+        font-weight: 700;
+        color: #fff;
+        transform: rotate(-90deg);
+        white-space: nowrap;
+      }
+      .plate.lt b {
+        color: #16191e;
+      }
+      .plabel {
+        margin-left: 9px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+      }
 
-  /* ---------- expanded panel ---------- */
-  .panel{display:none;border-top:1px solid var(--line);padding:12px 14px 14px;background:rgba(22,25,30,.02)}
-  .card.open .panel{display:block}
-  .setrow{display:grid;grid-template-columns:34px 1fr 1fr 44px;gap:8px;align-items:center;margin-bottom:7px}
-  .setno{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;color:var(--ink-3)}
-  .fld{position:relative}
-  .fld input{
-    width:100%;padding:9px 26px 9px 9px;border:1px solid var(--line);border-radius:5px;
-    background:var(--card);font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:700;
-    color:var(--ink);text-align:right;
-  }
-  .fld input:focus{outline:none;border-color:var(--accent)}
-  .fld span{
-    position:absolute;right:8px;top:50%;transform:translateY(-50%);
-    font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-3);pointer-events:none;
-  }
-  .chk{
-    width:44px;height:38px;border:1px solid var(--line);border-radius:5px;background:var(--card);
-    font-size:16px;color:var(--ink-3);cursor:pointer;line-height:1;
-  }
-  .chk.on{background:var(--accent);border-color:var(--accent);color:#fff}
-  .ptools{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap}
-  .btn{
-    padding:8px 12px;border:1px solid var(--line);border-radius:5px;background:var(--card);
-    font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-2);cursor:pointer;
-  }
-  .btn:hover{border-color:var(--ink-3);color:var(--ink)}
-  .btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-  .btn.warnbtn{color:#B72B27}
-  .alts{margin-top:11px;padding-top:10px;border-top:1px dashed var(--line)}
-  .alts .t{font-family:"JetBrains Mono",monospace;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:5px}
-  .alts li{font-size:13px;color:var(--ink-2);list-style:none;padding:3px 0}
-  .alts li b{font-family:"JetBrains Mono",monospace;color:var(--ink);font-weight:700}
-  .hint{font-size:12px;color:var(--ink-3);margin-top:9px}
+      /* ---------- expanded panel ---------- */
+      .panel {
+        display: none;
+        border-top: 1px solid var(--line);
+        padding: 12px 14px 14px;
+        background: rgba(22, 25, 30, 0.02);
+      }
+      .card.open .panel {
+        display: block;
+      }
+      .setrow {
+        display: grid;
+        grid-template-columns: 34px 1fr 1fr 44px;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 7px;
+      }
+      .setno {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+      }
+      .fld {
+        position: relative;
+      }
+      .fld input {
+        width: 100%;
+        padding: 9px 26px 9px 9px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--card);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink);
+        text-align: right;
+      }
+      .fld input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .fld span {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+        pointer-events: none;
+      }
+      .chk {
+        width: 44px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--card);
+        font-size: 16px;
+        color: var(--ink-3);
+        cursor: pointer;
+        line-height: 1;
+      }
+      .chk.on {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #fff;
+      }
+      .ptools {
+        display: flex;
+        gap: 7px;
+        margin-top: 11px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--card);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-2);
+        cursor: pointer;
+      }
+      .btn:hover {
+        border-color: var(--ink-3);
+        color: var(--ink);
+      }
+      .btn:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .btn.warnbtn {
+        color: #b72b27;
+      }
+      .alts {
+        margin-top: 11px;
+        padding-top: 10px;
+        border-top: 1px dashed var(--line);
+      }
+      .alts .t {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--ink-3);
+        margin-bottom: 5px;
+      }
+      .alts li {
+        font-size: 13px;
+        color: var(--ink-2);
+        list-style: none;
+        padding: 3px 0;
+      }
+      .alts li b {
+        font-family: "JetBrains Mono", monospace;
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .hint {
+        font-size: 12px;
+        color: var(--ink-3);
+        margin-top: 9px;
+      }
 
-  /* ---------- add exercise / data box ---------- */
-  .addbox{background:var(--card);border:1px dashed var(--line);border-radius:6px;padding:14px;margin-top:10px}
-  .addbox h4{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;color:var(--ink-3);margin-bottom:9px}
-  .addgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .addgrid input{
-    padding:9px;border:1px solid var(--line);border-radius:5px;background:var(--paper);
-    font-size:14px;color:var(--ink);width:100%;
-  }
-  .addgrid input:focus{outline:none;border-color:var(--accent)}
-  .addgrid .full{grid-column:1/-1}
+      /* ---------- add exercise / data box ---------- */
+      .addbox {
+        background: var(--card);
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        padding: 14px;
+        margin-top: 10px;
+      }
+      .addbox h4 {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-3);
+        margin-bottom: 9px;
+      }
+      .addgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .addgrid input {
+        padding: 9px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--paper);
+        font-size: 14px;
+        color: var(--ink);
+        width: 100%;
+      }
+      .addgrid input:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .addgrid .full {
+        grid-column: 1/-1;
+      }
 
-  /* ---------- history ---------- */
-  .hsel{
-    width:100%;padding:11px;border:1px solid var(--line);border-radius:6px;background:var(--card);
-    font-size:15px;color:var(--ink);margin:14px 0;
-  }
-  .chart{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px 8px 8px}
-  .hlist{margin-top:14px}
-  .hitem{
-    background:var(--card);border:1px solid var(--line);border-radius:6px;
-    padding:11px 13px;margin-bottom:7px;display:flex;gap:12px;align-items:baseline;
-  }
-  .hitem .d{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-3);flex:none}
-  .hitem .s{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink);font-weight:700}
-  .empty{text-align:center;color:var(--ink-3);font-size:14px;padding:40px 20px;line-height:1.7}
+      /* ---------- history ---------- */
+      .hsel {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--card);
+        font-size: 15px;
+        color: var(--ink);
+        margin: 14px 0;
+      }
+      .chart {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 14px 8px 8px;
+      }
+      .hlist {
+        margin-top: 14px;
+      }
+      .hitem {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 11px 13px;
+        margin-bottom: 7px;
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+      }
+      .hitem .d {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-3);
+        flex: none;
+      }
+      .hitem .s {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .empty {
+        text-align: center;
+        color: var(--ink-3);
+        font-size: 14px;
+        padding: 40px 20px;
+        line-height: 1.7;
+      }
 
-  /* ---------- rest timer ---------- */
-  .timer{
-    position:fixed;left:0;right:0;bottom:0;z-index:60;
-    background:var(--ink);color:#fff;
-    padding:12px 16px calc(12px + var(--safe-b));
-    display:none;align-items:center;gap:12px;
-  }
-  .timer.on{display:flex}
-  .timer .tval{font-family:"JetBrains Mono",monospace;font-size:30px;font-weight:700;line-height:1;min-width:82px}
-  .timer .tlbl{font-size:12px;color:#B9BEC5;flex:1;line-height:1.35}
-  .timer button{
-    padding:9px 12px;border:1px solid #4A515B;border-radius:5px;background:transparent;color:#fff;
-    font-family:"JetBrains Mono",monospace;font-size:12px;cursor:pointer;
-  }
-  .timer button:focus-visible{outline:2px solid #fff;outline-offset:2px}
-  .timer.done{background:#22754A}
+      /* ---------- rest timer ---------- */
+      .timer {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        background: var(--ink);
+        color: #fff;
+        padding: 12px 16px calc(12px + var(--safe-b));
+        display: none;
+        align-items: center;
+        gap: 12px;
+      }
+      .timer.on {
+        display: flex;
+      }
+      .timer .tval {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 30px;
+        font-weight: 700;
+        line-height: 1;
+        min-width: 82px;
+      }
+      .timer .tlbl {
+        font-size: 12px;
+        color: #b9bec5;
+        flex: 1;
+        line-height: 1.35;
+      }
+      .timer button {
+        padding: 9px 12px;
+        border: 1px solid #4a515b;
+        border-radius: 5px;
+        background: transparent;
+        color: #fff;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .timer button:focus-visible {
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+      .timer.done {
+        background: #22754a;
+      }
 
-  .foot{margin-top:34px;border-top:2px solid var(--ink);padding-top:18px}
-  .foot h3{font-family:"Black Han Sans",sans-serif;font-size:18px;margin-bottom:10px}
-  .foot .rule{display:flex;gap:11px;padding:8px 0;font-size:13px;color:var(--ink-2)}
-  .foot .rule i{font-family:"JetBrains Mono",monospace;font-style:normal;font-weight:700;font-size:11px;color:var(--accent);padding-top:3px;flex:none}
-  .foot .rule b{color:var(--ink);font-weight:600}
-  .warn{
-    background:#FDF3E7;border:1px solid #E8C89A;border-radius:6px;padding:11px 13px;
-    font-size:13px;color:#6B4A16;margin-top:14px;
-  }
-  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-</head>
-<body>
+      .foot {
+        margin-top: 34px;
+        border-top: 2px solid var(--ink);
+        padding-top: 18px;
+      }
+      .foot h3 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      .foot .rule {
+        display: flex;
+        gap: 11px;
+        padding: 8px 0;
+        font-size: 13px;
+        color: var(--ink-2);
+      }
+      .foot .rule i {
+        font-family: "JetBrains Mono", monospace;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 11px;
+        color: var(--accent);
+        padding-top: 3px;
+        flex: none;
+      }
+      .foot .rule b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+      .warn {
+        background: #fdf3e7;
+        border: 1px solid #e8c89a;
+        border-radius: 6px;
+        padding: 11px 13px;
+        font-size: 13px;
+        color: #6b4a16;
+        margin-top: 14px;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="brand">
+        <h1>트레이닝</h1>
+        <span class="today" id="today"></span>
+      </div>
+      <div class="tabs" id="tabs"></div>
+    </div>
 
-<div class="top">
-  <div class="brand">
-    <h1>트레이닝</h1>
-    <span class="today" id="today"></span>
-  </div>
-  <div class="tabs" id="tabs"></div>
-</div>
+    <div class="wrap"><div class="alert" id="alert" role="alert"></div></div>
+    <div class="wrap" id="view"></div>
 
-<div class="wrap"><div class="alert" id="alert" role="alert"></div></div>
-<div class="wrap" id="view"></div>
+    <input
+      type="file"
+      id="d-file"
+      accept="application/json,.json"
+      style="display: none"
+    />
 
-<input type="file" id="d-file" accept="application/json,.json" style="display:none">
+    <div class="timer" id="timer" role="timer">
+      <div class="tval" id="tval">0:00</div>
+      <div class="tlbl" id="tlbl">휴식</div>
+      <button id="t30">+30초</button>
+      <button id="tskip">건너뛰기</button>
+    </div>
 
-<div class="timer" id="timer" role="timer">
-  <div class="tval" id="tval">0:00</div>
-  <div class="tlbl" id="tlbl">휴식</div>
-  <button id="t30">+30초</button>
-  <button id="tskip">건너뛰기</button>
-</div>
+    <script src="./core.js"></script>
+    <script>
+      if (typeof Gym === "undefined") {
+        document.getElementById("view").innerHTML =
+          '<div class="empty">core.js 를 불러오지 못했어.<br>index.html 과 같은 폴더에 있는지 확인해줘.</div>';
+        throw new Error("core.js missing");
+      }
 
-<script src="./core.js"></script>
-<script>
-if (typeof Gym === 'undefined'){
-  document.getElementById('view').innerHTML =
-    '<div class="empty">core.js 를 불러오지 못했어.<br>index.html 과 같은 폴더에 있는지 확인해줘.</div>';
-  throw new Error('core.js missing');
-}
+      /* ============ constants ============ */
+      var K_LOG = "gym.logs.v1",
+        K_CUSTOM = "gym.custom.v1";
+      var BACKUP_VERSION = 1;
+      var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
+      var TIMER_TICK_MS = 500;
+      var TIMER_HIDE_MS = 8000;
+      var ADD_SECONDS = 30;
+      var MAX_NAME = 60,
+        MAX_REPS = 24,
+        MAX_SETS = 20,
+        MAX_REST = 900,
+        MAX_LOAD = 999;
 
-/* ============ constants ============ */
-var K_LOG = 'gym.logs.v1', K_CUSTOM = 'gym.custom.v1';
-var BACKUP_VERSION = 1;
-var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
-var TIMER_TICK_MS = 500;
-var TIMER_HIDE_MS = 8000;
-var ADD_SECONDS = 30;
-var MAX_NAME = 60, MAX_REPS = 24, MAX_SETS = 20, MAX_REST = 900, MAX_LOAD = 999;
+      /* ============ storage (falls back to memory in sandboxed previews) ============ */
+      var Store = (function () {
+        var mem = {},
+          ok = true;
+        try {
+          localStorage.setItem("__t", "1");
+          localStorage.removeItem("__t");
+        } catch (e) {
+          ok = false;
+        }
+        return {
+          ok: ok,
+          get: function (k, d) {
+            try {
+              var v = ok ? localStorage.getItem(k) : mem[k];
+              return v ? JSON.parse(v) : d;
+            } catch (e) {
+              return d;
+            }
+          },
+          /* 성공 여부를 돌려준다. 조용히 삼키면 용량이 찬 날부터 기록이 사라진다. */
+          set: function (k, v) {
+            var s = JSON.stringify(v);
+            if (!ok) {
+              mem[k] = s;
+              return true;
+            }
+            try {
+              localStorage.setItem(k, s);
+              return true;
+            } catch (e) {
+              mem[k] = s;
+              return false;
+            }
+          },
+        };
+      })();
 
-/* ============ storage (falls back to memory in sandboxed previews) ============ */
-var Store = (function(){
-  var mem = {}, ok = true;
-  try { localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }
-  catch(e){ ok = false; }
-  return {
-    ok: ok,
-    get: function(k, d){
-      try { var v = ok ? localStorage.getItem(k) : mem[k]; return v ? JSON.parse(v) : d; }
-      catch(e){ return d; }
-    },
-    /* 성공 여부를 돌려준다. 조용히 삼키면 용량이 찬 날부터 기록이 사라진다. */
-    set: function(k, v){
-      var s = JSON.stringify(v);
-      if (!ok){ mem[k] = s; return true; }
-      try { localStorage.setItem(k, s); return true; }
-      catch(e){ mem[k] = s; return false; }
-    }
-  };
-})();
+      var logs = Store.get(K_LOG, {}); // { exId: [ {date, sets:[{w,r,done}]} ] }
+      var custom = Store.get(K_CUSTOM, {}); // { dayId: [ exercise ] }
 
-var logs   = Store.get(K_LOG, {});     // { exId: [ {date, sets:[{w,r,done}]} ] }
-var custom = Store.get(K_CUSTOM, {});  // { dayId: [ exercise ] }
+      function today() {
+        return Gym.todayKey();
+      }
 
-function today(){ return Gym.todayKey(); }
+      /* ============ alert banner ============ */
+      function notify(msg, kind) {
+        var el = document.getElementById("alert");
+        el.textContent = msg;
+        el.className = "alert on " + (kind || "bad");
+      }
+      function clearNotify() {
+        var el = document.getElementById("alert");
+        el.textContent = "";
+        el.className = "alert";
+      }
 
-/* ============ alert banner ============ */
-function notify(msg, kind){
-  var el = document.getElementById('alert');
-  el.textContent = msg;
-  el.className = 'alert on ' + (kind || 'bad');
-}
-function clearNotify(){
-  var el = document.getElementById('alert');
-  el.textContent = '';
-  el.className = 'alert';
-}
+      /* ============ persistence ============ */
+      function saveLogs() {
+        var pruned = Gym.pruneLogs(logs);
+        logs = pruned.logs;
+        if (Store.set(K_LOG, logs)) return true;
+        notify(
+          "저장 공간이 부족해서 기록이 저장되지 않았어. 내보내기로 백업한 뒤 오래된 기록을 정리해줘.",
+        );
+        return false;
+      }
+      function saveCustom() {
+        if (Store.set(K_CUSTOM, custom)) return true;
+        notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        return false;
+      }
 
-/* ============ persistence ============ */
-function saveLogs(){
-  var pruned = Gym.pruneLogs(logs);
-  logs = pruned.logs;
-  if (Store.set(K_LOG, logs)) return true;
-  notify('저장 공간이 부족해서 기록이 저장되지 않았어. 내보내기로 백업한 뒤 오래된 기록을 정리해줘.');
-  return false;
-}
-function saveCustom(){
-  if (Store.set(K_CUSTOM, custom)) return true;
-  notify('저장 공간이 부족해서 종목이 저장되지 않았어.');
-  return false;
-}
+      /* 예전 버전이 남긴 빈 엔트리를 시작할 때 한 번 걷어낸다. */
+      (function compactOnLoad() {
+        var pruned = Gym.pruneLogs(logs);
+        if (!pruned.removed) return;
+        logs = pruned.logs;
+        Store.set(K_LOG, logs);
+      })();
 
-/* 예전 버전이 남긴 빈 엔트리를 시작할 때 한 번 걷어낸다. */
-(function compactOnLoad(){
-  var pruned = Gym.pruneLogs(logs);
-  if (!pruned.removed) return;
-  logs = pruned.logs;
-  Store.set(K_LOG, logs);
-})();
+      /* ============ routine ============ */
+      var WARM = [
+        {
+          id: "w-rot",
+          name: "익스터널 로테이션",
+          load: 4,
+          unit: "kg",
+          sets: 2,
+          reps: "15회",
+          rest: 45,
+          note: "어깨 지치기 전에 먼저. 밴드로 해도 됨",
+        },
+      ];
 
-/* ============ routine ============ */
-var WARM = [
-  { id:'w-rot', name:'익스터널 로테이션', load:4, unit:'kg', sets:2, reps:'15회', rest:45,
-    note:'어깨 지치기 전에 먼저. 밴드로 해도 됨' }
-];
+      /* 어깨 서킷은 4일 모두에 같은 ID 로 붙는다 — 종목이 같으니 기록도 한 줄로 이어진다. */
+      var CIRCUIT = [
+        {
+          id: "c-rear",
+          name: "리어델트 플라이",
+          load: 4,
+          unit: "kg ×2",
+          sets: 4,
+          reps: "15회",
+          rest: 0,
+          note: "쉬지 않고 다음",
+        },
+        {
+          id: "c-side",
+          name: "사이드 레터럴 레이즈",
+          load: 4,
+          unit: "kg ×2",
+          sets: 4,
+          reps: "15회",
+          rest: 0,
+          note: "쉬지 않고 다음",
+        },
+        {
+          id: "c-front",
+          name: "프론트 레이즈",
+          load: 4,
+          unit: "kg ×2",
+          sets: 4,
+          reps: "15회",
+          rest: 60,
+          note: "라운드 끝 · 60초 휴식",
+        },
+      ];
 
-/* 어깨 서킷은 4일 모두에 같은 ID 로 붙는다 — 종목이 같으니 기록도 한 줄로 이어진다. */
-var CIRCUIT = [
-  { id:'c-rear',  name:'리어델트 플라이',      load:4, unit:'kg ×2', sets:4, reps:'15회', rest:0,  note:'쉬지 않고 다음' },
-  { id:'c-side',  name:'사이드 레터럴 레이즈', load:4, unit:'kg ×2', sets:4, reps:'15회', rest:0,  note:'쉬지 않고 다음' },
-  { id:'c-front', name:'프론트 레이즈',        load:4, unit:'kg ×2', sets:4, reps:'15회', rest:60, note:'라운드 끝 · 60초 휴식' }
-];
+      var LEGSUB = [
+        "고블릿 스쿼트 <b>20kg</b> — 자리 잘 남",
+        "스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로",
+        "워킹 런지 <b>12kg ×2</b> — 한쪽 12보",
+        "레그 익스텐션 <b>35kg</b> — 사두만 집중",
+      ];
+      var LEGSUB2 = [
+        "덤벨 스텝업 <b>12kg ×2</b> — 한쪽 10회",
+        "스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로",
+        "고블릿 스쿼트 <b>20kg</b> — 자리 잘 남",
+        "벨트 스쿼트 — 헬스장에 있으면",
+      ];
 
-var LEGSUB = [
-  '고블릿 스쿼트 <b>20kg</b> — 자리 잘 남',
-  '스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로',
-  '워킹 런지 <b>12kg ×2</b> — 한쪽 12보',
-  '레그 익스텐션 <b>35kg</b> — 사두만 집중'
-];
-var LEGSUB2 = [
-  '덤벨 스텝업 <b>12kg ×2</b> — 한쪽 10회',
-  '스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로',
-  '고블릿 스쿼트 <b>20kg</b> — 자리 잘 남',
-  '벨트 스쿼트 — 헬스장에 있으면'
-];
+      var DAYS = [
+        {
+          id: "d1",
+          num: "DAY 01",
+          name: "상체 A",
+          tag: "저반복 · 힘",
+          accent: "#B72B27",
+          main: [
+            {
+              id: "d1-bench",
+              name: "벤치프레스",
+              load: 45,
+              unit: "kg",
+              sets: 4,
+              reps: "6-8회",
+              rest: 120,
+              plates: true,
+            },
+            {
+              id: "d1-row",
+              name: "바벨로우",
+              load: 40,
+              unit: "kg",
+              sets: 4,
+              reps: "8-10회",
+              rest: 90,
+              plates: true,
+            },
+            {
+              id: "d1-incdb",
+              name: "인클라인 덤벨프레스",
+              load: 16,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "10-12회",
+              rest: 90,
+            },
+            {
+              id: "d1-lat",
+              name: "랫풀다운",
+              load: 45,
+              unit: "kg",
+              sets: 3,
+              reps: "10-12회",
+              rest: 90,
+            },
+            {
+              id: "d1-curl",
+              name: "덤벨컬",
+              load: 8,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "10-12회",
+              rest: 60,
+            },
+            {
+              id: "d1-push",
+              name: "케이블 푸시다운",
+              load: 20,
+              unit: "kg",
+              sets: 3,
+              reps: "12-15회",
+              rest: 60,
+            },
+          ],
+        },
+        {
+          id: "d2",
+          num: "DAY 02",
+          name: "하체 A",
+          tag: "스쿼트 중심",
+          accent: "#23528F",
+          main: [
+            {
+              id: "d2-sq",
+              name: "백스쿼트",
+              load: 60,
+              unit: "kg",
+              sets: 4,
+              reps: "6-8회",
+              rest: 150,
+              plates: true,
+            },
+            {
+              id: "d2-rdl",
+              name: "루마니안 데드리프트",
+              load: 50,
+              unit: "kg",
+              sets: 3,
+              reps: "8-10회",
+              rest: 120,
+              plates: true,
+            },
+            {
+              id: "d2-lp",
+              name: "레그프레스",
+              sub: "기계별로 조정",
+              load: 60,
+              unit: "kg~",
+              sets: 3,
+              reps: "12회",
+              rest: 90,
+              alts: LEGSUB,
+            },
+            {
+              id: "d2-lc",
+              name: "레그컬",
+              load: 30,
+              unit: "kg",
+              sets: 3,
+              reps: "12-15회",
+              rest: 60,
+            },
+            {
+              id: "d2-knee",
+              name: "행잉 니레이즈",
+              load: 0,
+              unit: "맨몸",
+              sets: 3,
+              reps: "12-15회",
+              rest: 60,
+            },
+          ],
+        },
+        {
+          id: "d3",
+          num: "DAY 03",
+          name: "상체 B",
+          tag: "고반복 · 볼륨",
+          accent: "#C89614",
+          main: [
+            {
+              id: "d3-inc",
+              name: "인클라인 바벨프레스",
+              load: 35,
+              unit: "kg",
+              sets: 4,
+              reps: "8-10회",
+              rest: 120,
+              plates: true,
+            },
+            {
+              id: "d3-pull",
+              name: "풀업",
+              sub: "밴드 보조 가능",
+              load: 0,
+              unit: "맨몸",
+              sets: 4,
+              reps: "최대반복",
+              rest: 120,
+            },
+            {
+              id: "d3-ohp",
+              name: "덤벨 숄더프레스",
+              load: 14,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "10-12회",
+              rest: 90,
+            },
+            {
+              id: "d3-csr",
+              name: "체스트서포티드 로우",
+              load: 35,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 90,
+            },
+            {
+              id: "d3-fly",
+              name: "케이블 플라이",
+              load: 10,
+              unit: "kg /쪽",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d3-icurl",
+              name: "인클라인 덤벨컬",
+              load: 6,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+            },
+            {
+              id: "d3-ohe",
+              name: "오버헤드 익스텐션",
+              load: 12,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+            },
+          ],
+        },
+        {
+          id: "d4",
+          num: "DAY 04",
+          name: "하체 B",
+          tag: "힌지 중심",
+          accent: "#22754A",
+          main: [
+            {
+              id: "d4-dl",
+              name: "데드리프트",
+              sub: "첫 주 중량 찾기",
+              load: 60,
+              unit: "kg~",
+              sets: 3,
+              reps: "5회",
+              rest: 180,
+              plates: true,
+            },
+            {
+              id: "d4-bss",
+              name: "불가리안 스플릿 스쿼트",
+              load: 12,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "10회 (한쪽씩)",
+              rest: 90,
+            },
+            {
+              id: "d4-hack",
+              name: "핵스쿼트 또는 레그프레스",
+              sub: "기계별로 조정",
+              load: 60,
+              unit: "kg~",
+              sets: 3,
+              reps: "12회",
+              rest: 90,
+              alts: LEGSUB2,
+            },
+            {
+              id: "d4-ht",
+              name: "힙 쓰러스트",
+              load: 60,
+              unit: "kg",
+              sets: 3,
+              reps: "10-12회",
+              rest: 90,
+              plates: true,
+            },
+            {
+              id: "d4-lext",
+              name: "레그 익스텐션",
+              load: 35,
+              unit: "kg",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d4-cc",
+              name: "케이블 크런치",
+              load: 25,
+              unit: "kg",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+          ],
+        },
+      ];
 
-var DAYS = [
-  { id:'d1', num:'DAY 01', name:'상체 A', tag:'저반복 · 힘', accent:'#B72B27', main:[
-    { id:'d1-bench', name:'벤치프레스',         load:45, unit:'kg',    sets:4, reps:'6-8회',   rest:120, plates:true },
-    { id:'d1-row',   name:'바벨로우',           load:40, unit:'kg',    sets:4, reps:'8-10회',  rest:90,  plates:true },
-    { id:'d1-incdb', name:'인클라인 덤벨프레스', load:16, unit:'kg ×2', sets:3, reps:'10-12회', rest:90 },
-    { id:'d1-lat',   name:'랫풀다운',           load:45, unit:'kg',    sets:3, reps:'10-12회', rest:90 },
-    { id:'d1-curl',  name:'덤벨컬',             load:8,  unit:'kg ×2', sets:3, reps:'10-12회', rest:60 },
-    { id:'d1-push',  name:'케이블 푸시다운',     load:20, unit:'kg',    sets:3, reps:'12-15회', rest:60 }
-  ]},
-  { id:'d2', num:'DAY 02', name:'하체 A', tag:'스쿼트 중심', accent:'#23528F', main:[
-    { id:'d2-sq',   name:'백스쿼트',             load:60, unit:'kg',  sets:4, reps:'6-8회',   rest:150, plates:true },
-    { id:'d2-rdl',  name:'루마니안 데드리프트',   load:50, unit:'kg',  sets:3, reps:'8-10회',  rest:120, plates:true },
-    { id:'d2-lp',   name:'레그프레스', sub:'기계별로 조정', load:60, unit:'kg~', sets:3, reps:'12회', rest:90, alts:LEGSUB },
-    { id:'d2-lc',   name:'레그컬',               load:30, unit:'kg',  sets:3, reps:'12-15회', rest:60 },
-    { id:'d2-knee', name:'행잉 니레이즈',        load:0,  unit:'맨몸', sets:3, reps:'12-15회', rest:60 }
-  ]},
-  { id:'d3', num:'DAY 03', name:'상체 B', tag:'고반복 · 볼륨', accent:'#C89614', main:[
-    { id:'d3-inc',  name:'인클라인 바벨프레스', load:35, unit:'kg',     sets:4, reps:'8-10회',  rest:120, plates:true },
-    { id:'d3-pull', name:'풀업', sub:'밴드 보조 가능', load:0, unit:'맨몸', sets:4, reps:'최대반복', rest:120 },
-    { id:'d3-ohp',  name:'덤벨 숄더프레스',     load:14, unit:'kg ×2',  sets:3, reps:'10-12회', rest:90 },
-    { id:'d3-csr',  name:'체스트서포티드 로우', load:35, unit:'kg',     sets:3, reps:'12회',    rest:90 },
-    { id:'d3-fly',  name:'케이블 플라이',       load:10, unit:'kg /쪽', sets:3, reps:'15회',    rest:60 },
-    { id:'d3-icurl',name:'인클라인 덤벨컬',     load:6,  unit:'kg ×2',  sets:3, reps:'12회',    rest:60 },
-    { id:'d3-ohe',  name:'오버헤드 익스텐션',   load:12, unit:'kg',     sets:3, reps:'12회',    rest:60 }
-  ]},
-  { id:'d4', num:'DAY 04', name:'하체 B', tag:'힌지 중심', accent:'#22754A', main:[
-    { id:'d4-dl',   name:'데드리프트', sub:'첫 주 중량 찾기', load:60, unit:'kg~', sets:3, reps:'5회', rest:180, plates:true },
-    { id:'d4-bss',  name:'불가리안 스플릿 스쿼트', load:12, unit:'kg ×2', sets:3, reps:'10회 (한쪽씩)', rest:90 },
-    { id:'d4-hack', name:'핵스쿼트 또는 레그프레스', sub:'기계별로 조정', load:60, unit:'kg~', sets:3, reps:'12회', rest:90, alts:LEGSUB2 },
-    { id:'d4-ht',   name:'힙 쓰러스트',   load:60, unit:'kg', sets:3, reps:'10-12회', rest:90, plates:true },
-    { id:'d4-lext', name:'레그 익스텐션', load:35, unit:'kg', sets:3, reps:'15회',    rest:60 },
-    { id:'d4-cc',   name:'케이블 크런치', load:25, unit:'kg', sets:3, reps:'15회',    rest:60 }
-  ]}
-];
+      /* ============ log write path ============ */
+      /* 읽기는 Gym.entryFor / Gym.viewSets 로. 여기는 실제로 값을 쓸 때만 부른다. */
+      function ensureEntry(exId, date, nSets) {
+        if (!logs[exId]) logs[exId] = [];
+        var e = Gym.entryFor(logs, exId, date);
+        if (!e) {
+          e = { date: date, sets: [] };
+          logs[exId].push(e);
+          logs[exId].sort(function (a, b) {
+            return a.date < b.date ? -1 : a.date > b.date ? 1 : 0;
+          });
+        }
+        while (e.sets.length < nSets) e.sets.push(Gym.blankSet());
+        return e;
+      }
 
-/* ============ log write path ============ */
-/* 읽기는 Gym.entryFor / Gym.viewSets 로. 여기는 실제로 값을 쓸 때만 부른다. */
-function ensureEntry(exId, date, nSets){
-  if (!logs[exId]) logs[exId] = [];
-  var e = Gym.entryFor(logs, exId, date);
-  if (!e){
-    e = { date: date, sets: [] };
-    logs[exId].push(e);
-    logs[exId].sort(function(a,b){ return a.date < b.date ? -1 : (a.date > b.date ? 1 : 0); });
-  }
-  while (e.sets.length < nSets) e.sets.push(Gym.blankSet());
-  return e;
-}
+      /* ============ rest timer ============ */
+      var Timer = (function () {
+        var endAt = 0,
+          iv = null,
+          hideTo = null,
+          lock = null,
+          label = "휴식";
+        var el = document.getElementById("timer"),
+          val = document.getElementById("tval"),
+          lbl = document.getElementById("tlbl");
+        var actx = null;
 
-/* ============ rest timer ============ */
-var Timer = (function(){
-  var endAt = 0, iv = null, hideTo = null, lock = null, label = '휴식';
-  var el  = document.getElementById('timer'),
-      val = document.getElementById('tval'),
-      lbl = document.getElementById('tlbl');
-  var actx = null;
+        function remainMs() {
+          return endAt - Date.now();
+        }
+        function remain() {
+          return Math.max(0, Math.ceil(remainMs() / 1000));
+        }
+        function fmt(s) {
+          var m = Math.floor(s / 60),
+            r = s % 60;
+          return m + ":" + (r < 10 ? "0" : "") + r;
+        }
+        function paint() {
+          val.textContent = fmt(remain());
+        }
 
-  function remainMs(){ return endAt - Date.now(); }
-  function remain(){ return Math.max(0, Math.ceil(remainMs() / 1000)); }
-  function fmt(s){ var m = Math.floor(s/60), r = s % 60; return m + ':' + (r < 10 ? '0' : '') + r; }
-  function paint(){ val.textContent = fmt(remain()); }
+        /* AudioContext 는 사용자 제스처 안에서 만들어 둬야 iOS 가 나중 재생을 막지 않는다. */
+        function audio() {
+          if (actx) {
+            if (actx.state === "suspended") actx.resume().catch(function () {});
+            return actx;
+          }
+          try {
+            var C = window.AudioContext || window.webkitAudioContext;
+            if (!C) return null;
+            actx = new C();
+          } catch (e) {
+            return null;
+          }
+          return actx;
+        }
 
-  /* AudioContext 는 사용자 제스처 안에서 만들어 둬야 iOS 가 나중 재생을 막지 않는다. */
-  function audio(){
-    if (actx){
-      if (actx.state === 'suspended') actx.resume().catch(function(){});
-      return actx;
-    }
-    try {
-      var C = window.AudioContext || window.webkitAudioContext;
-      if (!C) return null;
-      actx = new C();
-    } catch(e){ return null; }
-    return actx;
-  }
+        function beep() {
+          var ctx = audio();
+          if (!ctx) return;
+          try {
+            var o = ctx.createOscillator(),
+              g = ctx.createGain();
+            o.connect(g);
+            g.connect(ctx.destination);
+            o.frequency.value = 880;
+            o.type = "sine";
+            g.gain.setValueAtTime(0.0001, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+            o.start();
+            o.stop(ctx.currentTime + 0.62);
+          } catch (e) {}
+        }
 
-  function beep(){
-    var ctx = audio();
-    if (!ctx) return;
-    try {
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value = 880; o.type = 'sine';
-      g.gain.setValueAtTime(.0001, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(.25, ctx.currentTime + .02);
-      g.gain.exponentialRampToValueAtTime(.0001, ctx.currentTime + .6);
-      o.start(); o.stop(ctx.currentTime + .62);
-    } catch(e){}
-  }
+        function releaseWake() {
+          if (!lock) return;
+          try {
+            lock.release().catch(function () {});
+          } catch (e) {}
+          lock = null;
+        }
+        function requestWake() {
+          if (!navigator.wakeLock || lock || !iv) return;
+          try {
+            navigator.wakeLock
+              .request("screen")
+              .then(function (l) {
+                if (iv) lock = l;
+                else {
+                  try {
+                    l.release();
+                  } catch (e) {}
+                }
+              })
+              .catch(function () {});
+          } catch (e) {}
+        }
 
-  function releaseWake(){
-    if (!lock) return;
-    try { lock.release().catch(function(){}); } catch(e){}
-    lock = null;
-  }
-  function requestWake(){
-    if (!navigator.wakeLock || lock || !iv) return;
-    try {
-      navigator.wakeLock.request('screen').then(function(l){
-        if (iv) lock = l; else { try { l.release(); } catch(e){} }
-      }).catch(function(){});
-    } catch(e){}
-  }
+        function clearHide() {
+          if (hideTo) {
+            clearTimeout(hideTo);
+            hideTo = null;
+          }
+        }
 
-  function clearHide(){ if (hideTo){ clearTimeout(hideTo); hideTo = null; } }
+        function finish() {
+          if (iv) {
+            clearInterval(iv);
+            iv = null;
+          }
+          paint();
+          el.classList.add("done");
+          lbl.textContent = "다음 세트 준비";
+          beep();
+          if (navigator.vibrate) {
+            try {
+              navigator.vibrate([200, 100, 200]);
+            } catch (e) {}
+          }
+          releaseWake();
+          clearHide();
+          hideTo = setTimeout(function () {
+            hideTo = null;
+            el.classList.remove("on", "done");
+          }, TIMER_HIDE_MS);
+        }
 
-  function finish(){
-    if (iv){ clearInterval(iv); iv = null; }
-    paint();
-    el.classList.add('done');
-    lbl.textContent = '다음 세트 준비';
-    beep();
-    if (navigator.vibrate){ try { navigator.vibrate([200,100,200]); } catch(e){} }
-    releaseWake();
-    clearHide();
-    hideTo = setTimeout(function(){ hideTo = null; el.classList.remove('on','done'); }, TIMER_HIDE_MS);
-  }
+        function tick() {
+          paint();
+          if (remainMs() <= 0) finish();
+        }
 
-  function tick(){
-    paint();
-    if (remainMs() <= 0) finish();
-  }
+        function run() {
+          if (iv) clearInterval(iv);
+          iv = setInterval(tick, TIMER_TICK_MS);
+          requestWake();
+        }
 
-  function run(){
-    if (iv) clearInterval(iv);
-    iv = setInterval(tick, TIMER_TICK_MS);
-    requestWake();
-  }
-
-  /* 남은 초를 빼는 대신 종료 시각을 잡아둔다.
+        /* 남은 초를 빼는 대신 종료 시각을 잡아둔다.
      그래야 화면이 꺼져 틱이 누락돼도 복귀했을 때 값이 맞다. */
-  function start(sec, text){
-    if (!sec) return;
-    audio();
-    clearHide();
-    endAt = Date.now() + sec * 1000;
-    label = text || '휴식';
-    lbl.textContent = label;
-    el.classList.add('on');
-    el.classList.remove('done');
-    paint();
-    run();
-  }
+        function start(sec, text) {
+          if (!sec) return;
+          audio();
+          clearHide();
+          endAt = Date.now() + sec * 1000;
+          label = text || "휴식";
+          lbl.textContent = label;
+          el.classList.add("on");
+          el.classList.remove("done");
+          paint();
+          run();
+        }
 
-  function stop(){
-    if (iv){ clearInterval(iv); iv = null; }
-    clearHide();
-    endAt = 0;
-    el.classList.remove('on','done');
-    releaseWake();
-  }
+        function stop() {
+          if (iv) {
+            clearInterval(iv);
+            iv = null;
+          }
+          clearHide();
+          endAt = 0;
+          el.classList.remove("on", "done");
+          releaseWake();
+        }
 
-  function extend(){
-    clearHide();
-    endAt = (iv ? endAt : Date.now()) + ADD_SECONDS * 1000;
-    lbl.textContent = label;
-    el.classList.add('on');
-    el.classList.remove('done');
-    paint();
-    if (!iv) run();
-  }
+        function extend() {
+          clearHide();
+          endAt = (iv ? endAt : Date.now()) + ADD_SECONDS * 1000;
+          lbl.textContent = label;
+          el.classList.add("on");
+          el.classList.remove("done");
+          paint();
+          if (!iv) run();
+        }
 
-  document.getElementById('t30').addEventListener('click', extend);
-  document.getElementById('tskip').addEventListener('click', stop);
+        document.getElementById("t30").addEventListener("click", extend);
+        document.getElementById("tskip").addEventListener("click", stop);
 
-  /* 화면 잠금 중에는 OS 가 wake lock 을 회수한다. 돌아오면 다시 잡고 값도 맞춘다. */
-  document.addEventListener('visibilitychange', function(){
-    if (document.visibilityState !== 'visible' || !iv) return;
-    tick();
-    requestWake();
-  });
+        /* 화면 잠금 중에는 OS 가 wake lock 을 회수한다. 돌아오면 다시 잡고 값도 맞춘다. */
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState !== "visible" || !iv) return;
+          tick();
+          requestWake();
+        });
 
-  return { start: start, stop: stop };
-})();
+        return { start: start, stop: stop };
+      })();
 
-/* ============ render ============ */
-var state = { tab: 'd1', open: {}, chartEx: null };
+      /* ============ render ============ */
+      var state = { tab: "d1", open: {}, chartEx: null };
 
-function allExercises(){
-  var out = [];
-  DAYS.forEach(function(day){
-    WARM.concat(day.main, CIRCUIT).forEach(function(e){ out.push(e); });
-    (custom[day.id] || []).forEach(function(e){ out.push(e); });
-  });
-  var seen = {}, uniq = [];
-  out.forEach(function(e){ if (!seen[e.id]){ seen[e.id] = 1; uniq.push(e); } });
-  return uniq;
-}
+      function allExercises() {
+        var out = [];
+        DAYS.forEach(function (day) {
+          WARM.concat(day.main, CIRCUIT).forEach(function (e) {
+            out.push(e);
+          });
+          (custom[day.id] || []).forEach(function (e) {
+            out.push(e);
+          });
+        });
+        var seen = {},
+          uniq = [];
+        out.forEach(function (e) {
+          if (!seen[e.id]) {
+            seen[e.id] = 1;
+            uniq.push(e);
+          }
+        });
+        return uniq;
+      }
 
-function findExercise(id){
-  var all = allExercises();
-  for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
-  return null;
-}
+      function findExercise(id) {
+        var all = allExercises();
+        for (var i = 0; i < all.length; i++)
+          if (all[i].id === id) return all[i];
+        return null;
+      }
 
-function renderTabs(){
-  var h = '';
-  DAYS.forEach(function(d){
-    h += '<button class="tab'+(state.tab===d.id?' on':'')+'" data-tab="'+Gym.esc(d.id)+'">'
-       + Gym.esc(d.num.replace('DAY ','D')) + ' ' + Gym.esc(d.name) + '</button>';
-  });
-  h += '<button class="tab'+(state.tab==='hist'?' on':'')+'" data-tab="hist">기록 · 그래프</button>';
-  document.getElementById('tabs').innerHTML = h;
-}
+      function renderTabs() {
+        var h = "";
+        DAYS.forEach(function (d) {
+          h +=
+            '<button class="tab' +
+            (state.tab === d.id ? " on" : "") +
+            '" data-tab="' +
+            Gym.esc(d.id) +
+            '">' +
+            Gym.esc(d.num.replace("DAY ", "D")) +
+            " " +
+            Gym.esc(d.name) +
+            "</button>";
+        });
+        h +=
+          '<button class="tab' +
+          (state.tab === "hist" ? " on" : "") +
+          '" data-tab="hist">기록 · 그래프</button>';
+        document.getElementById("tabs").innerHTML = h;
+      }
 
-function exCard(ex, day, isCustom){
-  var date = today();
-  var stored = Gym.entryFor(logs, ex.id, date);
-  var sets = Gym.viewSets(stored, ex.sets);
-  var allDone = sets.length > 0 && sets.every(function(s){ return s.done; });
-  var open = !!state.open[ex.id];
-  var prev = Gym.formatPrev(Gym.prevEntry(logs, ex.id, date));
+      function exCard(ex, day, isCustom) {
+        var date = today();
+        var stored = Gym.entryFor(logs, ex.id, date);
+        var sets = Gym.viewSets(stored, ex.sets);
+        var allDone =
+          sets.length > 0 &&
+          sets.every(function (s) {
+            return s.done;
+          });
+        var open = !!state.open[ex.id];
+        var prev = Gym.formatPrev(Gym.prevEntry(logs, ex.id, date));
 
-  var h = '<div class="card'+(allDone?' done':'')+(open?' open':'')+'" data-ex="'+Gym.esc(ex.id)+'">';
-  h += '<div class="row" data-toggle="'+Gym.esc(ex.id)+'" role="button" tabindex="0" aria-expanded="'+(open?'true':'false')+'">';
-  h += '<div class="nm">'+Gym.esc(ex.name)+(ex.sub?' <small>('+Gym.esc(ex.sub)+')</small>':'')+'</div>';
-  h += '<div class="ld">'+(ex.load ? ex.load+'<small>'+Gym.esc(ex.unit)+'</small>' : Gym.esc(ex.unit))+'</div>';
-  h += '<div class="mt">'+ex.sets+'세트 × '+Gym.esc(ex.reps)+'</div>';
-  h += '<div class="rt">'+(ex.rest ? '휴식 '+(ex.rest>=60 ? (ex.rest/60)+'분' : ex.rest+'초') : '연속')+'</div>';
-  if (ex.plates && ex.load) h += Gym.platesHTML(ex.load);
-  if (prev) h += '<div class="last">지난 기록 · '+Gym.esc(prev)+'</div>';
-  h += '</div>';
+        var h =
+          '<div class="card' +
+          (allDone ? " done" : "") +
+          (open ? " open" : "") +
+          '" data-ex="' +
+          Gym.esc(ex.id) +
+          '">';
+        h +=
+          '<div class="row" data-toggle="' +
+          Gym.esc(ex.id) +
+          '" role="button" tabindex="0" aria-expanded="' +
+          (open ? "true" : "false") +
+          '">';
+        h +=
+          '<div class="nm">' +
+          Gym.esc(ex.name) +
+          (ex.sub ? " <small>(" + Gym.esc(ex.sub) + ")</small>" : "") +
+          "</div>";
+        h +=
+          '<div class="ld">' +
+          (ex.load
+            ? ex.load + "<small>" + Gym.esc(ex.unit) + "</small>"
+            : Gym.esc(ex.unit)) +
+          "</div>";
+        h +=
+          '<div class="mt">' +
+          ex.sets +
+          "세트 × " +
+          Gym.esc(ex.reps) +
+          "</div>";
+        h +=
+          '<div class="rt">' +
+          (ex.rest
+            ? "휴식 " + (ex.rest >= 60 ? ex.rest / 60 + "분" : ex.rest + "초")
+            : "연속") +
+          "</div>";
+        if (ex.plates && ex.load) h += Gym.platesHTML(ex.load);
+        if (prev)
+          h += '<div class="last">지난 기록 · ' + Gym.esc(prev) + "</div>";
+        h += "</div>";
 
-  h += '<div class="panel">';
-  for (var i = 0; i < ex.sets; i++){
-    var s = sets[i];
-    var no = i + 1;
-    h += '<div class="setrow">'
-      + '<div class="setno">'+no+'세트</div>'
-      + '<div class="fld"><input type="number" inputmode="decimal" step="0.5" min="0" max="'+MAX_LOAD+'" '
-      +   'aria-label="'+no+'세트 중량 kg" placeholder="'+(ex.load||'')+'" '
-      +   'value="'+(s.w==null?'':s.w)+'" data-w="'+Gym.esc(ex.id)+'" data-i="'+i+'"><span>kg</span></div>'
-      + '<div class="fld"><input type="number" inputmode="numeric" min="0" max="9999" '
-      +   'aria-label="'+no+'세트 반복수" placeholder="회" '
-      +   'value="'+(s.r==null?'':s.r)+'" data-r="'+Gym.esc(ex.id)+'" data-i="'+i+'"><span>회</span></div>'
-      + '<button class="chk'+(s.done?' on':'')+'" aria-label="'+no+'세트 완료" aria-pressed="'+(s.done?'true':'false')+'" '
-      +   'data-done="'+Gym.esc(ex.id)+'" data-i="'+i+'">✓</button>'
-      + '</div>';
-  }
-  h += '<div class="ptools">';
-  h += '<button class="btn" data-fill="'+Gym.esc(ex.id)+'">지난 기록 불러오기</button>';
-  h += '<button class="btn" data-form="'+Gym.esc(ex.name)+'">폼 영상 보기</button>';
-  if (ex.rest) h += '<button class="btn" data-rest="'+ex.rest+'">휴식 '+ex.rest+'초 시작</button>';
-  if (isCustom) h += '<button class="btn warnbtn" data-del="'+Gym.esc(ex.id)+'" data-day="'+Gym.esc(day.id)+'">삭제</button>';
-  h += '</div>';
-  if (ex.note) h += '<div class="hint">'+Gym.esc(ex.note)+'</div>';
-  if (ex.alts){
-    h += '<div class="alts"><div class="t">자리 없을 때 대체 · 하나만 선택</div><ul>';
-    ex.alts.forEach(function(a){ h += '<li>'+a+'</li>'; });
-    h += '</ul></div>';
-  }
-  h += '</div></div>';
-  return h;
-}
+        h += '<div class="panel">';
+        for (var i = 0; i < ex.sets; i++) {
+          var s = sets[i];
+          var no = i + 1;
+          h +=
+            '<div class="setrow">' +
+            '<div class="setno">' +
+            no +
+            "세트</div>" +
+            '<div class="fld"><input type="number" inputmode="decimal" step="0.5" min="0" max="' +
+            MAX_LOAD +
+            '" ' +
+            'aria-label="' +
+            no +
+            '세트 중량 kg" placeholder="' +
+            (ex.load || "") +
+            '" ' +
+            'value="' +
+            (s.w == null ? "" : s.w) +
+            '" data-w="' +
+            Gym.esc(ex.id) +
+            '" data-i="' +
+            i +
+            '"><span>kg</span></div>' +
+            '<div class="fld"><input type="number" inputmode="numeric" min="0" max="9999" ' +
+            'aria-label="' +
+            no +
+            '세트 반복수" placeholder="회" ' +
+            'value="' +
+            (s.r == null ? "" : s.r) +
+            '" data-r="' +
+            Gym.esc(ex.id) +
+            '" data-i="' +
+            i +
+            '"><span>회</span></div>' +
+            '<button class="chk' +
+            (s.done ? " on" : "") +
+            '" aria-label="' +
+            no +
+            '세트 완료" aria-pressed="' +
+            (s.done ? "true" : "false") +
+            '" ' +
+            'data-done="' +
+            Gym.esc(ex.id) +
+            '" data-i="' +
+            i +
+            '">✓</button>' +
+            "</div>";
+        }
+        h += '<div class="ptools">';
+        h +=
+          '<button class="btn" data-fill="' +
+          Gym.esc(ex.id) +
+          '">지난 기록 불러오기</button>';
+        h +=
+          '<button class="btn" data-form="' +
+          Gym.esc(ex.name) +
+          '">폼 영상 보기</button>';
+        if (ex.rest)
+          h +=
+            '<button class="btn" data-rest="' +
+            ex.rest +
+            '">휴식 ' +
+            ex.rest +
+            "초 시작</button>";
+        if (isCustom)
+          h +=
+            '<button class="btn warnbtn" data-del="' +
+            Gym.esc(ex.id) +
+            '" data-day="' +
+            Gym.esc(day.id) +
+            '">삭제</button>';
+        h += "</div>";
+        if (ex.note) h += '<div class="hint">' + Gym.esc(ex.note) + "</div>";
+        if (ex.alts) {
+          h +=
+            '<div class="alts"><div class="t">자리 없을 때 대체 · 하나만 선택</div><ul>';
+          ex.alts.forEach(function (a) {
+            h += "<li>" + a + "</li>";
+          });
+          h += "</ul></div>";
+        }
+        h += "</div></div>";
+        return h;
+      }
 
-function dataBoxHTML(){
-  return '<div class="addbox"><h4>데이터 백업</h4>'
-    + '<div class="ptools">'
-    +   '<button class="btn" id="d-export">내보내기 (JSON)</button>'
-    +   '<button class="btn" id="d-import">불러오기</button>'
-    +   '<button class="btn warnbtn" id="d-reset">전체 삭제</button>'
-    + '</div>'
-    + '<div class="hint">기록은 이 브라우저에만 있어. 가끔 내보내서 따로 보관해줘.<br>'
-    + '불러오기는 덮어쓰지 않고 <b>합친다</b> — 같은 날짜·같은 종목만 파일 쪽 값으로 바뀐다.</div>'
-    + '</div>';
-}
+      function dataBoxHTML() {
+        return (
+          '<div class="addbox"><h4>데이터 백업</h4>' +
+          '<div class="ptools">' +
+          '<button class="btn" id="d-export">내보내기 (JSON)</button>' +
+          '<button class="btn" id="d-import">불러오기</button>' +
+          '<button class="btn warnbtn" id="d-reset">전체 삭제</button>' +
+          "</div>" +
+          '<div class="hint">기록은 이 브라우저에만 있어. 가끔 내보내서 따로 보관해줘.<br>' +
+          "불러오기는 덮어쓰지 않고 <b>합친다</b> — 같은 날짜·같은 종목만 파일 쪽 값으로 바뀐다.</div>" +
+          "</div>"
+        );
+      }
 
-function renderDay(day){
-  document.documentElement.style.setProperty('--accent', day.accent);
-  var h = '<div class="dayhead"><div class="num">'+Gym.esc(day.num)+'</div><h2>'+Gym.esc(day.name)+'</h2><p>'+Gym.esc(day.tag)+'</p></div>';
+      function renderDay(day) {
+        document.documentElement.style.setProperty("--accent", day.accent);
+        var h =
+          '<div class="dayhead"><div class="num">' +
+          Gym.esc(day.num) +
+          "</div><h2>" +
+          Gym.esc(day.name) +
+          "</h2><p>" +
+          Gym.esc(day.tag) +
+          "</p></div>";
 
-  h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
-  WARM.forEach(function(ex){ h += exCard(ex, day, false); });
-  h += '</div>';
+        h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
+        WARM.forEach(function (ex) {
+          h += exCard(ex, day, false);
+        });
+        h += "</div>";
 
-  h += '<div class="grp main"><div class="grp-label">MAIN</div>';
-  day.main.forEach(function(ex){ h += exCard(ex, day, false); });
-  (custom[day.id] || []).forEach(function(ex){ h += exCard(ex, day, true); });
-  h += '</div>';
+        h += '<div class="grp main"><div class="grp-label">MAIN</div>';
+        day.main.forEach(function (ex) {
+          h += exCard(ex, day, false);
+        });
+        (custom[day.id] || []).forEach(function (ex) {
+          h += exCard(ex, day, true);
+        });
+        h += "</div>";
 
-  h += '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트 · 3-4라운드 · 라운드 사이 60초</div>';
-  CIRCUIT.forEach(function(ex){ h += exCard(ex, day, false); });
-  h += '</div>';
+        h +=
+          '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트 · 3-4라운드 · 라운드 사이 60초</div>';
+        CIRCUIT.forEach(function (ex) {
+          h += exCard(ex, day, false);
+        });
+        h += "</div>";
 
-  h += '<div class="addbox"><h4>이 날에 종목 추가</h4><div class="addgrid">'
-    + '<input class="full" id="a-name" maxlength="'+MAX_NAME+'" placeholder="종목 이름">'
-    + '<input id="a-load" type="number" step="0.5" min="0" max="'+MAX_LOAD+'" placeholder="중량 kg">'
-    + '<input id="a-sets" type="number" min="1" max="'+MAX_SETS+'" placeholder="세트 수">'
-    + '<input id="a-reps" maxlength="'+MAX_REPS+'" placeholder="반복 (예: 10-12회)">'
-    + '<input id="a-rest" type="number" min="0" max="'+MAX_REST+'" placeholder="휴식 초">'
-    + '</div><div class="ptools"><button class="btn" id="a-go" data-day="'+Gym.esc(day.id)+'">추가하기</button></div></div>';
+        h +=
+          '<div class="addbox"><h4>이 날에 종목 추가</h4><div class="addgrid">' +
+          '<input class="full" id="a-name" maxlength="' +
+          MAX_NAME +
+          '" placeholder="종목 이름">' +
+          '<input id="a-load" type="number" step="0.5" min="0" max="' +
+          MAX_LOAD +
+          '" placeholder="중량 kg">' +
+          '<input id="a-sets" type="number" min="1" max="' +
+          MAX_SETS +
+          '" placeholder="세트 수">' +
+          '<input id="a-reps" maxlength="' +
+          MAX_REPS +
+          '" placeholder="반복 (예: 10-12회)">' +
+          '<input id="a-rest" type="number" min="0" max="' +
+          MAX_REST +
+          '" placeholder="휴식 초">' +
+          '</div><div class="ptools"><button class="btn" id="a-go" data-day="' +
+          Gym.esc(day.id) +
+          '">추가하기</button></div></div>';
 
-  h += '<div class="foot"><h3>중량 올리는 기준</h3>'
-    + '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>'
-    + '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>'
-    + '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>'
-    + '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>'
-    + '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>'
-    + '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>'
-    + '</div>';
+        h +=
+          '<div class="foot"><h3>중량 올리는 기준</h3>' +
+          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
+          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
+          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
+          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
+          "</div>";
 
-  if (!Store.ok){
-    h += '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아. 직접 호스팅하면 정상 저장돼.</div>';
-  }
-  return h;
-}
+        if (!Store.ok) {
+          h +=
+            '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아. 직접 호스팅하면 정상 저장돼.</div>';
+        }
+        return h;
+      }
 
-function renderHist(){
-  var list = allExercises().filter(function(ex){
-    var a = logs[ex.id] || [];
-    return a.some(function(e){ return Gym.topSet(e) != null; });
-  });
-  if (!list.length){
-    return '<div class="empty">아직 기록이 없어.<br>종목을 눌러서 중량과 반복수를 입력하면<br>여기에 그래프가 쌓여.</div>';
-  }
-  if (!state.chartEx || !list.some(function(e){ return e.id === state.chartEx; })) state.chartEx = list[0].id;
+      function renderHist() {
+        var list = allExercises().filter(function (ex) {
+          var a = logs[ex.id] || [];
+          return a.some(function (e) {
+            return Gym.topSet(e) != null;
+          });
+        });
+        if (!list.length) {
+          return '<div class="empty">아직 기록이 없어.<br>종목을 눌러서 중량과 반복수를 입력하면<br>여기에 그래프가 쌓여.</div>';
+        }
+        if (
+          !state.chartEx ||
+          !list.some(function (e) {
+            return e.id === state.chartEx;
+          })
+        )
+          state.chartEx = list[0].id;
 
-  var h = '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
-  list.forEach(function(ex){
-    h += '<option value="'+Gym.esc(ex.id)+'"'+(ex.id===state.chartEx?' selected':'')+'>'+Gym.esc(ex.name)+'</option>';
-  });
-  h += '</select>';
+        var h =
+          '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
+        list.forEach(function (ex) {
+          h +=
+            '<option value="' +
+            Gym.esc(ex.id) +
+            '"' +
+            (ex.id === state.chartEx ? " selected" : "") +
+            ">" +
+            Gym.esc(ex.name) +
+            "</option>";
+        });
+        h += "</select>";
 
-  var arr = (logs[state.chartEx] || []).filter(function(e){ return Gym.topSet(e) != null; });
-  var series = arr.map(function(e){ return { d: e.date, v: Gym.topSet(e) }; });
-  h += '<div class="chart">'+Gym.chartSVG(series)+'</div>';
+        var arr = (logs[state.chartEx] || []).filter(function (e) {
+          return Gym.topSet(e) != null;
+        });
+        var series = arr.map(function (e) {
+          return { d: e.date, v: Gym.topSet(e) };
+        });
+        h += '<div class="chart">' + Gym.chartSVG(series) + "</div>";
 
-  h += '<div class="hlist">';
-  arr.slice().reverse().forEach(function(e){
-    var used = e.sets.filter(function(s){ return s.w != null || s.r != null; });
-    var txt = used.map(function(s){ return (s.w==null?'-':s.w)+'×'+(s.r==null?'-':s.r); }).join('  ');
-    h += '<div class="hitem"><span class="d">'+Gym.esc(Gym.shortDate(e.date))+'</span><span class="s">'+Gym.esc(txt)+'</span></div>';
-  });
-  h += '</div>';
-  return h;
-}
+        h += '<div class="hlist">';
+        arr
+          .slice()
+          .reverse()
+          .forEach(function (e) {
+            var used = e.sets.filter(function (s) {
+              return s.w != null || s.r != null;
+            });
+            var txt = used
+              .map(function (s) {
+                return (
+                  (s.w == null ? "-" : s.w) + "×" + (s.r == null ? "-" : s.r)
+                );
+              })
+              .join("  ");
+            h +=
+              '<div class="hitem"><span class="d">' +
+              Gym.esc(Gym.shortDate(e.date)) +
+              '</span><span class="s">' +
+              Gym.esc(txt) +
+              "</span></div>";
+          });
+        h += "</div>";
+        return h;
+      }
 
-function render(){
-  renderTabs();
-  var v = document.getElementById('view');
-  if (state.tab === 'hist'){
-    document.documentElement.style.setProperty('--accent', '#B72B27');
-    v.innerHTML = renderHist() + dataBoxHTML();
-  } else {
-    var day = DAYS.filter(function(d){ return d.id === state.tab; })[0] || DAYS[0];
-    v.innerHTML = renderDay(day) + dataBoxHTML();
-  }
-  document.getElementById('today').textContent = today();
-}
+      function render() {
+        renderTabs();
+        var v = document.getElementById("view");
+        if (state.tab === "hist") {
+          document.documentElement.style.setProperty("--accent", "#B72B27");
+          v.innerHTML = renderHist() + dataBoxHTML();
+        } else {
+          var day =
+            DAYS.filter(function (d) {
+              return d.id === state.tab;
+            })[0] || DAYS[0];
+          v.innerHTML = renderDay(day) + dataBoxHTML();
+        }
+        document.getElementById("today").textContent = today();
+      }
 
-/* ============ backup ============ */
-function exportData(){
-  try {
-    var payload = {
-      v: BACKUP_VERSION,
-      exportedAt: new Date().toISOString(),
-      logs: logs,
-      custom: custom
-    };
-    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'gym-backup-' + today() + '.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
-    notify('백업 파일을 내려받았어.', 'good');
-  } catch(e){
-    notify('내보내기에 실패했어. 브라우저가 파일 저장을 막았을 수 있어.');
-  }
-}
+      /* ============ backup ============ */
+      function exportData() {
+        try {
+          var payload = {
+            v: BACKUP_VERSION,
+            exportedAt: new Date().toISOString(),
+            logs: logs,
+            custom: custom,
+          };
+          var blob = new Blob([JSON.stringify(payload, null, 2)], {
+            type: "application/json",
+          });
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement("a");
+          a.href = url;
+          a.download = "gym-backup-" + today() + ".json";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(function () {
+            URL.revokeObjectURL(url);
+          }, 1000);
+          notify("백업 파일을 내려받았어.", "good");
+        } catch (e) {
+          notify("내보내기에 실패했어. 브라우저가 파일 저장을 막았을 수 있어.");
+        }
+      }
 
-function importFile(input){
-  var f = input.files && input.files[0];
-  input.value = '';
-  if (!f) return;
-  if (f.size > MAX_BACKUP_BYTES){
-    notify('파일이 너무 커 (5MB 초과).');
-    return;
-  }
-  var fr = new FileReader();
-  fr.onerror = function(){ notify('파일을 읽지 못했어.'); };
-  fr.onload = function(){
-    var parsed;
-    try { parsed = JSON.parse(fr.result); }
-    catch(e){ notify('JSON 형식이 아니야.'); return; }
-    if (!parsed || typeof parsed !== 'object'){ notify('백업 파일 형식이 아니야.'); return; }
+      function importFile(input) {
+        var f = input.files && input.files[0];
+        input.value = "";
+        if (!f) return;
+        if (f.size > MAX_BACKUP_BYTES) {
+          notify("파일이 너무 커 (5MB 초과).");
+          return;
+        }
+        var fr = new FileReader();
+        fr.onerror = function () {
+          notify("파일을 읽지 못했어.");
+        };
+        fr.onload = function () {
+          var parsed;
+          try {
+            parsed = JSON.parse(fr.result);
+          } catch (e) {
+            notify("JSON 형식이 아니야.");
+            return;
+          }
+          if (!parsed || typeof parsed !== "object") {
+            notify("백업 파일 형식이 아니야.");
+            return;
+          }
 
-    var inLogs   = Gym.sanitizeLogs(parsed.logs);
-    var inCustom = Gym.sanitizeCustom(parsed.custom);
-    var nLogs    = Object.keys(inLogs).length;
-    var nCustom  = Object.keys(inCustom).length;
-    if (!nLogs && !nCustom){ notify('불러올 기록이 없어. 파일을 확인해줘.'); return; }
+          var inLogs = Gym.sanitizeLogs(parsed.logs);
+          var inCustom = Gym.sanitizeCustom(parsed.custom);
+          var nLogs = Object.keys(inLogs).length;
+          var nCustom = Object.keys(inCustom).length;
+          if (!nLogs && !nCustom) {
+            notify("불러올 기록이 없어. 파일을 확인해줘.");
+            return;
+          }
 
-    logs   = Gym.mergeLogs(logs, inLogs);
-    custom = Gym.mergeCustom(custom, inCustom);
-    var okLogs = saveLogs(), okCustom = saveCustom();
-    render();
-    if (okLogs && okCustom) notify('종목 '+nLogs+'개의 기록을 합쳤어.', 'good');
-  };
-  fr.readAsText(f);
-}
+          logs = Gym.mergeLogs(logs, inLogs);
+          custom = Gym.mergeCustom(custom, inCustom);
+          var okLogs = saveLogs(),
+            okCustom = saveCustom();
+          render();
+          if (okLogs && okCustom)
+            notify("종목 " + nLogs + "개의 기록을 합쳤어.", "good");
+        };
+        fr.readAsText(f);
+      }
 
-function resetAll(){
-  if (!window.confirm('모든 기록과 추가한 종목을 지울까? 되돌릴 수 없어.')) return;
-  logs = {};
-  custom = {};
-  state.open = {};
-  state.chartEx = null;
-  saveLogs();
-  saveCustom();
-  render();
-  notify('전체 삭제했어.', 'good');
-}
+      function resetAll() {
+        if (
+          !window.confirm("모든 기록과 추가한 종목을 지울까? 되돌릴 수 없어.")
+        )
+          return;
+        logs = {};
+        custom = {};
+        state.open = {};
+        state.chartEx = null;
+        saveLogs();
+        saveCustom();
+        render();
+        notify("전체 삭제했어.", "good");
+      }
 
-/* ============ events ============ */
-var CLICK_SELECTOR = '[data-tab],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del],'
-                   + '#a-go,#d-export,#d-import,#d-reset,#alert';
+      /* ============ events ============ */
+      var CLICK_SELECTOR =
+        "[data-tab],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "#a-go,#d-export,#d-import,#d-reset,#alert";
 
-function toggleCard(rowEl){
-  var id = rowEl.dataset.toggle;
-  state.open[id] = !state.open[id];
-  rowEl.parentNode.classList.toggle('open', state.open[id]);
-  rowEl.setAttribute('aria-expanded', state.open[id] ? 'true' : 'false');
-}
+      function toggleCard(rowEl) {
+        var id = rowEl.dataset.toggle;
+        state.open[id] = !state.open[id];
+        rowEl.parentNode.classList.toggle("open", state.open[id]);
+        rowEl.setAttribute("aria-expanded", state.open[id] ? "true" : "false");
+      }
 
-function addExercise(dayId){
-  var name = document.getElementById('a-name').value.trim();
-  if (!name){ notify('종목 이름을 적어줘.'); return; }
-  var load = parseFloat(document.getElementById('a-load').value);
-  var sets = parseInt(document.getElementById('a-sets').value, 10);
-  var rest = parseInt(document.getElementById('a-rest').value, 10);
+      function addExercise(dayId) {
+        var name = document.getElementById("a-name").value.trim();
+        if (!name) {
+          notify("종목 이름을 적어줘.");
+          return;
+        }
+        var load = parseFloat(document.getElementById("a-load").value);
+        var sets = parseInt(document.getElementById("a-sets").value, 10);
+        var rest = parseInt(document.getElementById("a-rest").value, 10);
 
-  custom[dayId] = (custom[dayId] || []).concat([{
-    id: 'x-' + Date.now(),
-    name: name.slice(0, MAX_NAME),
-    load: (isFinite(load) && load >= 0 && load <= MAX_LOAD) ? load : 0,
-    unit: 'kg',
-    sets: Math.min(MAX_SETS, Math.max(1, sets || 3)),
-    reps: document.getElementById('a-reps').value.trim().slice(0, MAX_REPS) || '10-12회',
-    rest: Math.min(MAX_REST, Math.max(0, isFinite(rest) ? rest : 60))
-  }]);
-  saveCustom();
-  render();
-}
+        custom[dayId] = (custom[dayId] || []).concat([
+          {
+            id: "x-" + Date.now(),
+            name: name.slice(0, MAX_NAME),
+            load: isFinite(load) && load >= 0 && load <= MAX_LOAD ? load : 0,
+            unit: "kg",
+            sets: Math.min(MAX_SETS, Math.max(1, sets || 3)),
+            reps:
+              document
+                .getElementById("a-reps")
+                .value.trim()
+                .slice(0, MAX_REPS) || "10-12회",
+            rest: Math.min(MAX_REST, Math.max(0, isFinite(rest) ? rest : 60)),
+          },
+        ]);
+        saveCustom();
+        render();
+      }
 
-function deleteExercise(dayId, exId){
-  if (!window.confirm('이 종목과 지금까지의 기록을 함께 지울까?')) return;
-  custom[dayId] = (custom[dayId] || []).filter(function(e){ return e.id !== exId; });
-  if (!custom[dayId].length) delete custom[dayId];
-  delete logs[exId];              // 고아 기록을 남기지 않는다
-  delete state.open[exId];
-  if (state.chartEx === exId) state.chartEx = null;
-  saveCustom();
-  saveLogs();
-  render();
-}
+      function deleteExercise(dayId, exId) {
+        if (!window.confirm("이 종목과 지금까지의 기록을 함께 지울까?")) return;
+        custom[dayId] = (custom[dayId] || []).filter(function (e) {
+          return e.id !== exId;
+        });
+        if (!custom[dayId].length) delete custom[dayId];
+        delete logs[exId]; // 고아 기록을 남기지 않는다
+        delete state.open[exId];
+        if (state.chartEx === exId) state.chartEx = null;
+        saveCustom();
+        saveLogs();
+        render();
+      }
 
-function toggleSetDone(btn){
-  var exId = btn.dataset.done, i = +btn.dataset.i;
-  var ex = findExercise(exId);
-  if (!ex) return;
-  var e = ensureEntry(exId, today(), ex.sets);
-  var next = !e.sets[i].done;
-  e.sets[i].done = next;
-  saveLogs();
-  btn.classList.toggle('on', next);
-  btn.setAttribute('aria-pressed', next ? 'true' : 'false');
-  var card = btn.closest('.card');
-  if (card) card.classList.toggle('done', e.sets.every(function(s){ return s.done; }));
-  if (next && ex.rest) Timer.start(ex.rest, ex.name + ' · ' + (i+1) + '세트 완료');
-}
+      function toggleSetDone(btn) {
+        var exId = btn.dataset.done,
+          i = +btn.dataset.i;
+        var ex = findExercise(exId);
+        if (!ex) return;
+        var e = ensureEntry(exId, today(), ex.sets);
+        var next = !e.sets[i].done;
+        e.sets[i].done = next;
+        saveLogs();
+        btn.classList.toggle("on", next);
+        btn.setAttribute("aria-pressed", next ? "true" : "false");
+        var card = btn.closest(".card");
+        if (card)
+          card.classList.toggle(
+            "done",
+            e.sets.every(function (s) {
+              return s.done;
+            }),
+          );
+        if (next && ex.rest)
+          Timer.start(ex.rest, ex.name + " · " + (i + 1) + "세트 완료");
+      }
 
-function fillFromPrev(exId){
-  var prev = Gym.prevEntry(logs, exId, today());
-  if (!prev){ notify('불러올 지난 기록이 없어.'); return; }
-  var ex = findExercise(exId);
-  if (!ex) return;
-  var cur = ensureEntry(exId, today(), ex.sets);
-  prev.sets.forEach(function(s, i){
-    if (cur.sets[i]){ cur.sets[i].w = s.w; cur.sets[i].r = s.r; }
-  });
-  saveLogs();
-  render();
-}
+      function fillFromPrev(exId) {
+        var prev = Gym.prevEntry(logs, exId, today());
+        if (!prev) {
+          notify("불러올 지난 기록이 없어.");
+          return;
+        }
+        var ex = findExercise(exId);
+        if (!ex) return;
+        var cur = ensureEntry(exId, today(), ex.sets);
+        prev.sets.forEach(function (s, i) {
+          if (cur.sets[i]) {
+            cur.sets[i].w = s.w;
+            cur.sets[i].r = s.r;
+          }
+        });
+        saveLogs();
+        render();
+      }
 
-document.addEventListener('click', function(ev){
-  var t = ev.target.closest ? ev.target.closest(CLICK_SELECTOR) : null;
-  if (!t) return;
+      document.addEventListener("click", function (ev) {
+        var t = ev.target.closest ? ev.target.closest(CLICK_SELECTOR) : null;
+        if (!t) return;
 
-  if (t.id === 'alert'){ clearNotify(); return; }
+        if (t.id === "alert") {
+          clearNotify();
+          return;
+        }
 
-  if (t.dataset.tab){ state.tab = t.dataset.tab; window.scrollTo(0,0); render(); return; }
-  if (t.dataset.toggle){ toggleCard(t); return; }
-  if (t.dataset.done){ toggleSetDone(t); return; }
-  if (t.dataset.rest){ Timer.start(+t.dataset.rest, '휴식'); return; }
-  if (t.dataset.fill){ fillFromPrev(t.dataset.fill); return; }
-  if (t.dataset.del){ deleteExercise(t.dataset.day, t.dataset.del); return; }
+        if (t.dataset.tab) {
+          state.tab = t.dataset.tab;
+          window.scrollTo(0, 0);
+          render();
+          return;
+        }
+        if (t.dataset.toggle) {
+          toggleCard(t);
+          return;
+        }
+        if (t.dataset.done) {
+          toggleSetDone(t);
+          return;
+        }
+        if (t.dataset.rest) {
+          Timer.start(+t.dataset.rest, "휴식");
+          return;
+        }
+        if (t.dataset.fill) {
+          fillFromPrev(t.dataset.fill);
+          return;
+        }
+        if (t.dataset.del) {
+          deleteExercise(t.dataset.day, t.dataset.del);
+          return;
+        }
 
-  if (t.dataset.form){
-    window.open(
-      'https://www.youtube.com/results?search_query=' + encodeURIComponent(t.dataset.form + ' 자세'),
-      '_blank', 'noopener,noreferrer'
-    );
-    return;
-  }
+        if (t.dataset.form) {
+          window.open(
+            "https://www.youtube.com/results?search_query=" +
+              encodeURIComponent(t.dataset.form + " 자세"),
+            "_blank",
+            "noopener,noreferrer",
+          );
+          return;
+        }
 
-  if (t.id === 'a-go'){ addExercise(t.dataset.day); return; }
-  if (t.id === 'd-export'){ exportData(); return; }
-  if (t.id === 'd-import'){ document.getElementById('d-file').click(); return; }
-  if (t.id === 'd-reset'){ resetAll(); return; }
-});
+        if (t.id === "a-go") {
+          addExercise(t.dataset.day);
+          return;
+        }
+        if (t.id === "d-export") {
+          exportData();
+          return;
+        }
+        if (t.id === "d-import") {
+          document.getElementById("d-file").click();
+          return;
+        }
+        if (t.id === "d-reset") {
+          resetAll();
+          return;
+        }
+      });
 
-/* 종목 카드는 role="button" 이니 Enter/Space 로도 열려야 한다. */
-document.addEventListener('keydown', function(ev){
-  if (ev.key !== 'Enter' && ev.key !== ' ' && ev.key !== 'Spacebar') return;
-  var row = ev.target.closest ? ev.target.closest('[data-toggle]') : null;
-  if (!row) return;
-  ev.preventDefault();
-  toggleCard(row);
-});
+      /* 종목 카드는 role="button" 이니 Enter/Space 로도 열려야 한다. */
+      document.addEventListener("keydown", function (ev) {
+        if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar")
+          return;
+        var row = ev.target.closest ? ev.target.closest("[data-toggle]") : null;
+        if (!row) return;
+        ev.preventDefault();
+        toggleCard(row);
+      });
 
-document.addEventListener('change', function(ev){
-  var el = ev.target;
+      document.addEventListener("change", function (ev) {
+        var el = ev.target;
 
-  if (el.id === 'd-file'){ importFile(el); return; }
-  if (el.id === 'hsel'){ state.chartEx = el.value; render(); return; }
+        if (el.id === "d-file") {
+          importFile(el);
+          return;
+        }
+        if (el.id === "hsel") {
+          state.chartEx = el.value;
+          render();
+          return;
+        }
 
-  var exId = el.dataset.w || el.dataset.r;
-  if (!exId) return;
-  var ex = findExercise(exId);
-  if (!ex) return;
+        var exId = el.dataset.w || el.dataset.r;
+        if (!exId) return;
+        var ex = findExercise(exId);
+        if (!ex) return;
 
-  var raw = el.value.trim();
-  var v = null;
-  if (raw !== ''){
-    var parsed = parseFloat(raw);
-    if (!isFinite(parsed) || parsed < 0) el.value = '';
-    else v = parsed;
-  }
-  var e = ensureEntry(exId, today(), ex.sets), i = +el.dataset.i;
-  if (el.dataset.w) e.sets[i].w = v; else e.sets[i].r = v;
-  saveLogs();
-});
+        var raw = el.value.trim();
+        var v = null;
+        if (raw !== "") {
+          var parsed = parseFloat(raw);
+          if (!isFinite(parsed) || parsed < 0) el.value = "";
+          else v = parsed;
+        }
+        var e = ensureEntry(exId, today(), ex.sets),
+          i = +el.dataset.i;
+        if (el.dataset.w) e.sets[i].w = v;
+        else e.sets[i].r = v;
+        saveLogs();
+      });
 
-render();
+      render();
 
-/* ============ service worker ============ */
-if ('serviceWorker' in navigator && location.protocol !== 'blob:'){
-  window.addEventListener('load', function(){
-    navigator.serviceWorker.register('./sw.js').catch(function(){});
-  });
-}
-</script>
-</body>
+      /* ============ service worker ============ */
+      if ("serviceWorker" in navigator && location.protocol !== "blob:") {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("./sw.js").catch(function () {});
+        });
+      }
+    </script>
+  </body>
 </html>
