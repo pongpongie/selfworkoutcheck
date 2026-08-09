@@ -50,6 +50,31 @@
 
   function isDateKey(v) { return typeof v === 'string' && DATE_RE.test(v); }
 
+  var WEEKDAY = ['일', '월', '화', '수', '목', '금', '토'];
+  var MS_PER_DAY = 86400000;
+
+  function parseKey(key) {
+    var p = String(key).split('-');
+    return new Date(+p[0], +p[1] - 1, +p[2]);
+  }
+
+  /* 월·연 경계를 Date 에 맡긴다. '2026-08-31' + 1 → '2026-09-01' */
+  function shiftDate(key, delta) {
+    var p = String(key).split('-');
+    return dateKey(new Date(+p[0], +p[1] - 1, +p[2] + delta));
+  }
+
+  /* from → to 가 며칠인지. 서머타임에 흔들리지 않게 UTC 로 센다. */
+  function dayDiff(fromKey, toKey) {
+    var a = String(fromKey).split('-');
+    var b = String(toKey).split('-');
+    var t1 = Date.UTC(+a[0], +a[1] - 1, +a[2]);
+    var t2 = Date.UTC(+b[0], +b[1] - 1, +b[2]);
+    return Math.round((t2 - t1) / MS_PER_DAY);
+  }
+
+  function weekday(key) { return WEEKDAY[parseKey(key).getDay()]; }
+
   /* ---------- 원판 계산 ---------- */
 
   function loadout(total, bar) {
@@ -445,6 +470,9 @@
     todayKey: todayKey,
     shortDate: shortDate,
     isDateKey: isDateKey,
+    shiftDate: shiftDate,
+    dayDiff: dayDiff,
+    weekday: weekday,
     loadout: loadout,
     platesHTML: platesHTML,
     entryFor: entryFor,

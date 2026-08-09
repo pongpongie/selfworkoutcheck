@@ -524,6 +524,75 @@
         line-height: 1.7;
       }
 
+      /* ---------- date bar ---------- */
+      .datebar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 14px;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--card);
+      }
+      .datebar.past {
+        background: #fdf3e7;
+        border-color: #e8c89a;
+      }
+      .dnav {
+        width: 34px;
+        height: 34px;
+        flex: none;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--paper);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        color: var(--ink-2);
+        cursor: pointer;
+      }
+      .dnav:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+      .dnav:not(:disabled):hover {
+        border-color: var(--ink-3);
+        color: var(--ink);
+      }
+      .dnav:focus-visible,
+      .datefld:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .datefld {
+        flex: 1;
+        min-width: 0;
+        padding: 8px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--paper);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+        text-align: center;
+      }
+      .datenote {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin-top: 7px;
+        padding: 8px 11px;
+        border-radius: 5px;
+        background: #fdf3e7;
+        border: 1px solid #e8c89a;
+        font-size: 13px;
+        color: #6b4a16;
+      }
+      .datenote b {
+        flex: 1;
+      }
+
       /* ---------- calendar ---------- */
       .calhead {
         display: flex;
@@ -1583,7 +1652,14 @@
         q: "",
         cat: null,
         pick: null,
+        /* 기록을 남길 날짜. 기본은 오늘이지만 지난 날짜로 돌려 적을 수 있다. */
+        logDate: Gym.todayKey(),
       };
+
+      /* 읽기·쓰기 모두 이걸 쓴다. today() 를 직접 쓰면 날짜 선택이 무시된다. */
+      function recordDate() {
+        return state.logDate;
+      }
 
       function allExercises() {
         var out = [];
@@ -1676,7 +1752,7 @@
       }
 
       function exCard(ex, day, isCustom) {
-        var date = today();
+        var date = recordDate();
         var stored = Gym.entryFor(logs, ex.id, date);
         var sets = Gym.viewSets(stored, ex.sets);
         var allDone =
@@ -1951,6 +2027,42 @@
         );
       }
 
+      /* ---------- 기록 날짜 선택 ---------- */
+      function dateBarHTML() {
+        var d = recordDate();
+        var today = Gym.todayKey();
+        var offset = Gym.dayDiff(d, today); // 0 = 오늘, 양수 = 며칠 전
+        var isToday = offset === 0;
+
+        var h =
+          '<div class="datebar' +
+          (isToday ? "" : " past") +
+          '">' +
+          '<button class="dnav" data-date="-1" aria-label="하루 전">‹</button>' +
+          '<input type="date" class="datefld" id="logdate" aria-label="기록할 날짜" value="' +
+          Gym.esc(d) +
+          '" max="' +
+          Gym.esc(today) +
+          '">' +
+          '<button class="dnav" data-date="1" aria-label="하루 뒤"' +
+          (isToday ? " disabled" : "") +
+          ">›</button>" +
+          "</div>";
+
+        if (!isToday) {
+          h +=
+            '<div class="datenote"><b>' +
+            Gym.esc(Gym.shortDate(d)) +
+            "(" +
+            Gym.esc(Gym.weekday(d)) +
+            ") · " +
+            offset +
+            "일 전에 기록 중</b>" +
+            '<button class="btn" id="date-today">오늘로</button></div>';
+        }
+        return h;
+      }
+
       function renderDay(day) {
         document.documentElement.style.setProperty("--accent", day.accent);
         var h =
@@ -1961,6 +2073,8 @@
           "</h2><p>" +
           Gym.esc(day.tag) +
           "</p></div>";
+
+        h += dateBarHTML();
 
         if (!day.freeform) {
           h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
@@ -2067,7 +2181,12 @@
           );
         }
 
-        var h = '<div class="calday"><div class="caldayhead"><h3>' +
+        var h = '<div class="calday">' +
+          '<div class="ptools" style="margin:0 0 10px">' +
+          '<button class="btn" data-jump="' +
+          Gym.esc(state.calDay) +
+          '">이 날짜에 기록하기</button></div>' +
+          '<div class="caldayhead"><h3>' +
           Gym.esc(Gym.shortDate(state.calDay)) +
           "</h3><span>" +
           day.count +
@@ -2240,7 +2359,13 @@
             })[0] || DAYS[0];
           v.innerHTML = renderDay(day) + dataBoxHTML();
         }
-        document.getElementById("today").textContent = today();
+        /* 상단에는 실제로 기록이 들어가는 날짜를 띄운다. 오늘이 아니면 눈에 띄게. */
+        var stamp = document.getElementById("today");
+        var isToday = recordDate() === today();
+        stamp.textContent =
+          recordDate() + (isToday ? "" : " ← 기록 중");
+        stamp.style.color = isToday ? "" : "var(--accent)";
+        stamp.style.fontWeight = isToday ? "" : "700";
       }
 
       /* ============ backup ============ */
@@ -2334,8 +2459,22 @@
       /* ============ events ============ */
       var CLICK_SELECTOR =
         "[data-tab],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
-        "[data-cal],[data-calday],[data-cat],[data-pick]," +
-        "#a-go,#a-clear,#d-export,#d-import,#d-reset,#alert";
+        "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
+        "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#alert";
+
+      /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
+      /* 거부하면 false 를 돌려준다 — 호출한 쪽이 입력창을 되돌려야 하기 때문. */
+      function setLogDate(key) {
+        if (!Gym.isDateKey(key)) return false;
+        if (Gym.dayDiff(key, Gym.todayKey()) < 0) {
+          notify("앞날에는 기록할 수 없어.");
+          return false;
+        }
+        state.logDate = key;
+        clearNotify();
+        render();
+        return true;
+      }
 
       function toggleCard(rowEl) {
         var id = rowEl.dataset.toggle;
@@ -2476,7 +2615,7 @@
           i = +btn.dataset.i;
         var ex = findExercise(exId);
         if (!ex) return;
-        var e = ensureEntry(exId, today(), ex.sets);
+        var e = ensureEntry(exId, recordDate(), ex.sets);
         var next = !e.sets[i].done;
         e.sets[i].done = next;
         saveLogs();
@@ -2495,14 +2634,14 @@
       }
 
       function fillFromPrev(exId) {
-        var prev = Gym.prevEntry(logs, exId, today());
+        var prev = Gym.prevEntry(logs, exId, recordDate());
         if (!prev) {
           notify("불러올 지난 기록이 없어.");
           return;
         }
         var ex = findExercise(exId);
         if (!ex) return;
-        var cur = ensureEntry(exId, today(), ex.sets);
+        var cur = ensureEntry(exId, recordDate(), ex.sets);
         prev.sets.forEach(function (s, i) {
           if (cur.sets[i]) {
             cur.sets[i].w = s.w;
@@ -2546,6 +2685,22 @@
         }
         if (t.dataset.del) {
           deleteExercise(t.dataset.day, t.dataset.del);
+          return;
+        }
+
+        if (t.dataset.date) {
+          setLogDate(Gym.shiftDate(recordDate(), +t.dataset.date));
+          return;
+        }
+        if (t.id === "date-today") {
+          setLogDate(Gym.todayKey());
+          return;
+        }
+        if (t.dataset.jump) {
+          setLogDate(t.dataset.jump);
+          state.tab = DAYS[0].id;
+          window.scrollTo(0, 0);
+          render();
           return;
         }
 
@@ -2632,6 +2787,11 @@
       document.addEventListener("change", function (ev) {
         var el = ev.target;
 
+        if (el.id === "logdate") {
+          /* 거부되면 화면과 실제 기록 날짜가 어긋나니 입력창을 되돌린다. */
+          if (!setLogDate(el.value)) el.value = recordDate();
+          return;
+        }
         if (el.id === "d-file") {
           importFile(el);
           return;
@@ -2654,7 +2814,7 @@
           if (!isFinite(parsed) || parsed < 0) el.value = "";
           else v = parsed;
         }
-        var e = ensureEntry(exId, today(), ex.sets),
+        var e = ensureEntry(exId, recordDate(), ex.sets),
           i = +el.dataset.i;
         if (el.dataset.w) e.sets[i].w = v;
         else e.sets[i].r = v;
