@@ -408,10 +408,13 @@
     return { days: days, volume: volume, sets: sets };
   }
 
+  /* 한쪽만 있으면 '-×12' 대신 단위를 붙여 읽히게 쓴다. */
   function formatSetLine(sets) {
     return (sets || []).map(function (s) {
       if (s.w == null && s.r == null) return '✓';
-      return (s.w == null ? '-' : s.w) + '×' + (s.r == null ? '-' : s.r);
+      if (s.w == null) return s.r + '회';
+      if (s.r == null) return s.w + 'kg';
+      return s.w + '×' + s.r;
     }).join(', ');
   }
 

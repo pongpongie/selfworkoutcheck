@@ -454,8 +454,13 @@ describe('shiftMonth / monthLabel / monthStats', function(){
 describe('formatSetLine / formatNumber', function(){
   eq('중량×반복으로 적는다',
      Gym.formatSetLine([{ w: 40, r: 10 }, { w: 45, r: 8 }]), '40×10, 45×8');
-  eq('빠진 값은 대시', Gym.formatSetLine([{ w: 40, r: null }]), '40×-');
+  // '-×12' 는 뭘 뜻하는지 안 읽힌다. 한쪽만 있으면 단위를 붙인다.
+  eq('중량만 있으면 kg', Gym.formatSetLine([{ w: 40, r: null }]), '40kg');
+  eq('횟수만 있으면 회', Gym.formatSetLine([{ w: null, r: 12 }]), '12회');
+  eq('섞여 있어도 각각', Gym.formatSetLine([{ w: 40, r: 8 }, { w: null, r: 12 }, { w: 45, r: null }]),
+     '40×8, 12회, 45kg');
   eq('체크만 한 세트는 표시만', Gym.formatSetLine([{ w: null, r: null, done: true }]), '✓');
+  eq('0kg 은 대시가 아니라 0', Gym.formatSetLine([{ w: 0, r: 12 }]), '0×12');
   eq('빈 배열은 빈 문자열', Gym.formatSetLine([]), '');
 
   eq('천 단위 구분', Gym.formatNumber(1020), '1,020');

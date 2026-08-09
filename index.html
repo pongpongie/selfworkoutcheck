@@ -2816,8 +2816,21 @@
         }
         var e = ensureEntry(exId, recordDate(), ex.sets),
           i = +el.dataset.i;
-        if (el.dataset.w) e.sets[i].w = v;
-        else e.sets[i].r = v;
+        if (el.dataset.w) {
+          e.sets[i].w = v;
+        } else {
+          e.sets[i].r = v;
+          /* 중량 칸의 회색 숫자는 placeholder 라 값이 아니다. 횟수만 적고 넘어가면
+             중량이 비어 볼륨이 0 이 된다. 카드에 적힌 계획 중량을 실제 값으로
+             채워 넣고, 입력창에도 보여줘서 다르면 바로 고칠 수 있게 한다. */
+          if (v != null && e.sets[i].w == null && ex.load > 0) {
+            e.sets[i].w = ex.load;
+            var wInput = document.querySelector(
+              '.panel input[data-w="' + ex.id + '"][data-i="' + i + '"]',
+            );
+            if (wInput) wInput.value = ex.load;
+          }
+        }
         saveLogs();
       });
 
