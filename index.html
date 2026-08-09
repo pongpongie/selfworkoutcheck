@@ -1368,6 +1368,17 @@
             },
           ],
         },
+        /* 정해진 종목 없이 그날 하고 싶은 걸 넣는 날.
+           freeform 이라 워밍업·어깨 서킷을 강제하지 않는다. */
+        {
+          id: "dx",
+          num: "EXTRA",
+          name: "엑스트라",
+          tag: "자유 · 그날 하고 싶은 것",
+          accent: "#7B3FA0",
+          freeform: true,
+          main: [],
+        },
       ];
 
       /* ============ log write path ============ */
@@ -1646,9 +1657,11 @@
             '" data-tab="' +
             Gym.esc(d.id) +
             '">' +
-            Gym.esc(d.num.replace("DAY ", "D")) +
-            " " +
-            Gym.esc(d.name) +
+            Gym.esc(
+              d.num.indexOf("DAY ") === 0
+                ? d.num.replace("DAY ", "D") + " " + d.name
+                : d.name,
+            ) +
             "</button>";
         });
         h +=
@@ -1949,27 +1962,39 @@
           Gym.esc(day.tag) +
           "</p></div>";
 
-        h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
-        WARM.forEach(function (ex) {
-          h += exCard(ex, day, false);
-        });
-        h += "</div>";
+        if (!day.freeform) {
+          h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
+          WARM.forEach(function (ex) {
+            h += exCard(ex, day, false);
+          });
+          h += "</div>";
+        }
 
-        h += '<div class="grp main"><div class="grp-label">MAIN</div>';
+        var added = custom[day.id] || [];
+        h +=
+          '<div class="grp main"><div class="grp-label">' +
+          (day.freeform ? "오늘 한 것" : "MAIN") +
+          "</div>";
         day.main.forEach(function (ex) {
           h += exCard(ex, day, false);
         });
-        (custom[day.id] || []).forEach(function (ex) {
+        added.forEach(function (ex) {
           h += exCard(ex, day, true);
         });
+        if (!day.main.length && !added.length) {
+          h +=
+            '<div class="empty">아직 넣은 종목이 없어.<br>아래에서 검색해서 추가해.</div>';
+        }
         h += "</div>";
 
-        h +=
-          '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트 · 3-4라운드 · 라운드 사이 60초</div>';
-        CIRCUIT.forEach(function (ex) {
-          h += exCard(ex, day, false);
-        });
-        h += "</div>";
+        if (!day.freeform) {
+          h +=
+            '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트 · 3-4라운드 · 라운드 사이 60초</div>';
+          CIRCUIT.forEach(function (ex) {
+            h += exCard(ex, day, false);
+          });
+          h += "</div>";
+        }
 
         h += addBoxHTML(day);
 
@@ -2363,12 +2388,14 @@
         if (input) input.focus();
       }
 
-      /* 같은 날에 같은 이름이 두 번 뜨면 어느 카드에 적었는지 헷갈린다. */
+      /* 같은 날에 같은 이름이 두 번 뜨면 어느 카드에 적었는지 헷갈린다.
+         자유 요일은 워밍업·서킷을 띄우지 않으니 그 이름들은 막지 않는다. */
       function dayHasExercise(dayId, name, id) {
         var day = DAYS.filter(function (d) {
           return d.id === dayId;
         })[0];
-        var list = WARM.concat(day ? day.main : [], CIRCUIT, custom[dayId] || []);
+        var list = (day ? day.main : []).concat(custom[dayId] || []);
+        if (!day || !day.freeform) list = list.concat(WARM, CIRCUIT);
         return list.some(function (e) {
           return e.name === name || e.id === id;
         });
