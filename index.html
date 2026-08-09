@@ -524,6 +524,299 @@
         line-height: 1.7;
       }
 
+      /* ---------- calendar ---------- */
+      .calhead {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 20px 0 4px;
+      }
+      .calhead h2 {
+        font-family: "Black Han Sans", sans-serif;
+        font-size: 24px;
+        line-height: 1;
+        flex: 1;
+      }
+      .calnav {
+        width: 38px;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--card);
+        font-family: "JetBrains Mono", monospace;
+        font-size: 15px;
+        color: var(--ink-2);
+        cursor: pointer;
+        flex: none;
+      }
+      .calnav:hover {
+        border-color: var(--ink-3);
+        color: var(--ink);
+      }
+      .calnav:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .calstat {
+        display: flex;
+        gap: 18px;
+        padding: 2px 2px 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .calstat b {
+        color: var(--ink);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .calgrid {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 10px 8px 8px;
+      }
+      .caldow,
+      .calweek {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+      }
+      .caldow span {
+        text-align: center;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-3);
+        padding-bottom: 6px;
+      }
+      .caldow span:first-child {
+        color: var(--accent);
+      }
+      .calcell {
+        aspect-ratio: 1;
+        /* 폰에서는 정사각형, 넓은 화면에서는 지나치게 커지지 않게 */
+        max-height: 54px;
+        border: 1px solid transparent;
+        border-radius: 5px;
+        background: transparent;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 13px;
+        color: var(--ink-2);
+        cursor: default;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .calcell.pad {
+        visibility: hidden;
+      }
+      .calcell.has {
+        cursor: pointer;
+        color: var(--ink);
+        font-weight: 700;
+      }
+      .calcell.lv1 {
+        background: rgba(34, 117, 74, 0.13);
+      }
+      .calcell.lv2 {
+        background: rgba(34, 117, 74, 0.28);
+      }
+      .calcell.lv3 {
+        background: rgba(34, 117, 74, 0.45);
+      }
+      .calcell.today {
+        border-color: var(--accent);
+      }
+      .calcell.sel {
+        background: var(--ink);
+        color: #fff;
+      }
+      .calcell:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px;
+      }
+      .calcell i {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: #22754a;
+        font-style: normal;
+      }
+      .calcell.sel i {
+        background: #fff;
+      }
+      .calday {
+        margin-top: 14px;
+      }
+      .caldayhead {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+      .caldayhead h3 {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .caldayhead span {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: var(--ink-3);
+      }
+      .calex {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-left: 3px solid var(--accent);
+        border-radius: 6px;
+        padding: 10px 13px;
+        margin-bottom: 6px;
+      }
+      .calex .n {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+      .calex .s {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 12px;
+        color: var(--ink-2);
+      }
+      .calex .v {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--ink-3);
+        margin-top: 3px;
+      }
+
+      /* ---------- exercise picker ---------- */
+      .cats {
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 9px;
+        margin-bottom: 2px;
+      }
+      .cat {
+        flex: none;
+        padding: 6px 11px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: var(--paper);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--ink-3);
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .cat.on {
+        color: #fff;
+        border-color: transparent;
+      }
+      .cat:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .cats::-webkit-scrollbar {
+        display: none;
+      }
+      .cats {
+        scrollbar-width: none;
+      }
+      .searchfld {
+        width: 100%;
+        padding: 10px 11px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--paper);
+        font-size: 15px;
+        color: var(--ink);
+      }
+      .searchfld:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .suglist {
+        list-style: none;
+        margin: 7px 0 0;
+        max-height: 232px;
+        overflow-y: auto;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--paper);
+      }
+      .suglist:empty {
+        display: none;
+      }
+      .sug {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        width: 100%;
+        padding: 9px 11px;
+        border: 0;
+        border-bottom: 1px solid var(--line);
+        background: transparent;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--ink);
+      }
+      .sug:last-child {
+        border-bottom: 0;
+      }
+      .sug:hover,
+      .sug:focus-visible {
+        background: rgba(22, 25, 30, 0.05);
+        outline: none;
+      }
+      .sug .tag {
+        flex: none;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        color: #fff;
+        padding: 2px 6px;
+        border-radius: 3px;
+      }
+      .sug .nm2 {
+        flex: 1;
+        font-weight: 600;
+      }
+      .sug .meta {
+        flex: none;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        color: var(--ink-3);
+      }
+      .sugnone {
+        padding: 11px;
+        font-size: 13px;
+        color: var(--ink-3);
+        text-align: center;
+      }
+      .picked {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+        padding: 8px 11px;
+        border-radius: 5px;
+        background: rgba(34, 117, 74, 0.1);
+        border: 1px solid rgba(34, 117, 74, 0.3);
+        font-size: 13px;
+        color: #1c5537;
+      }
+      .picked b {
+        flex: 1;
+      }
+
       /* ---------- rest timer ---------- */
       .timer {
         position: fixed;
@@ -645,11 +938,12 @@
     </div>
 
     <script src="./core.js"></script>
+    <script src="./exercises.js"></script>
     <script>
-      if (typeof Gym === "undefined") {
+      if (typeof Gym === "undefined" || typeof GymExercises === "undefined") {
         document.getElementById("view").innerHTML =
-          '<div class="empty">core.js 를 불러오지 못했어.<br>index.html 과 같은 폴더에 있는지 확인해줘.</div>';
-        throw new Error("core.js missing");
+          '<div class="empty">core.js / exercises.js 를 불러오지 못했어.<br>index.html 과 같은 폴더에 있는지 확인해줘.</div>';
+        throw new Error("core.js or exercises.js missing");
       }
 
       /* ============ constants ============ */
@@ -1267,7 +1561,18 @@
       })();
 
       /* ============ render ============ */
-      var state = { tab: "d1", open: {}, chartEx: null };
+      var now = new Date();
+      var state = {
+        tab: "d1",
+        open: {},
+        chartEx: null,
+        calYear: now.getFullYear(),
+        calMonth: now.getMonth(),
+        calDay: null,
+        q: "",
+        cat: null,
+        pick: null,
+      };
 
       function allExercises() {
         var out = [];
@@ -1297,6 +1602,41 @@
         return null;
       }
 
+      /* 캘린더는 지금 루틴에 없는 종목(예전에 지운 것, 들여온 것)도 보여줘야 한다.
+         루틴 → 카탈로그 → 그래도 없으면 id 순으로 이름을 찾는다. */
+      function exerciseName(id) {
+        var inRoutine = findExercise(id);
+        if (inRoutine) return inRoutine.name;
+        var inCatalog = GymExercises.BY_ID[id];
+        if (inCatalog) return inCatalog.name;
+        return id;
+      }
+
+      /* 기본 루틴 종목은 카탈로그와 id 가 다르다. 이름이 같으면 같은 부위로 본다. */
+      var CATALOG_CAT_BY_NAME = (function () {
+        var map = {};
+        GymExercises.ALL.forEach(function (e) {
+          map[e.name] = e.cat;
+        });
+        return map;
+      })();
+
+      function exerciseCategory(id) {
+        var inCatalog = GymExercises.BY_ID[id];
+        if (inCatalog) return inCatalog.cat;
+        var ex = findExercise(id);
+        if (!ex) return null;
+        if (ex.cat) return ex.cat;
+        return CATALOG_CAT_BY_NAME[ex.name] || null;
+      }
+
+      function categoryColor(catId) {
+        var cats = GymExercises.CATEGORIES;
+        for (var i = 0; i < cats.length; i++)
+          if (cats[i].id === catId) return cats[i].color;
+        return "#616973";
+      }
+
       function renderTabs() {
         var h = "";
         DAYS.forEach(function (d) {
@@ -1311,6 +1651,10 @@
             Gym.esc(d.name) +
             "</button>";
         });
+        h +=
+          '<button class="tab' +
+          (state.tab === "cal" ? " on" : "") +
+          '" data-tab="cal">캘린더</button>';
         h +=
           '<button class="tab' +
           (state.tab === "hist" ? " on" : "") +
@@ -1471,6 +1815,129 @@
         );
       }
 
+      /* ---------- 종목 추가 (부위 필터 + 자동완성) ---------- */
+      var SUGGEST_LIMIT = 12;
+
+      function catChipsHTML() {
+        var h = '<div class="cats" id="a-cats" role="group" aria-label="부위 선택">';
+        h +=
+          '<button class="cat' +
+          (state.cat === null ? " on" : "") +
+          '" data-cat="" style="' +
+          (state.cat === null ? "background:#16191E" : "") +
+          '">전체</button>';
+        GymExercises.CATEGORIES.forEach(function (c) {
+          var on = state.cat === c.id;
+          h +=
+            '<button class="cat' +
+            (on ? " on" : "") +
+            '" data-cat="' +
+            Gym.esc(c.id) +
+            '" style="' +
+            (on ? "background:" + c.color : "") +
+            '">' +
+            Gym.esc(c.name) +
+            "</button>";
+        });
+        h += "</div>";
+        return h;
+      }
+
+      function suggestionsHTML() {
+        if (state.pick) return "";
+        var hits = Gym.searchExercises(
+          GymExercises.ALL,
+          state.q,
+          state.cat,
+          SUGGEST_LIMIT,
+        );
+        if (!hits.length) {
+          return (
+            '<li class="sugnone">찾는 종목이 없어.<br>' +
+            "그대로 <b>추가하기</b>를 누르면 직접 입력한 이름으로 등록돼.</li>"
+          );
+        }
+        return hits
+          .map(function (e) {
+            return (
+              '<li><button type="button" class="sug" data-pick="' +
+              Gym.esc(e.id) +
+              '">' +
+              '<span class="tag" style="background:' +
+              categoryColor(e.cat) +
+              '">' +
+              Gym.esc(GymExercises.categoryName(e.cat)) +
+              "</span>" +
+              '<span class="nm2">' +
+              Gym.esc(e.name) +
+              "</span>" +
+              '<span class="meta">' +
+              e.sets +
+              "×" +
+              Gym.esc(e.reps) +
+              "</span>" +
+              "</button></li>"
+            );
+          })
+          .join("");
+      }
+
+      function pickedHTML() {
+        if (!state.pick) return "";
+        return (
+          '<div class="picked"><b>' +
+          Gym.esc(state.pick.name) +
+          " · " +
+          Gym.esc(GymExercises.categoryName(state.pick.cat)) +
+          "</b>" +
+          '<button class="btn" id="a-clear" type="button">다시 고르기</button></div>'
+        );
+      }
+
+      function addBoxHTML(day) {
+        var p = state.pick;
+        return (
+          '<div class="addbox"><h4>이 날에 종목 추가</h4>' +
+          catChipsHTML() +
+          '<input class="searchfld" id="a-name" maxlength="' +
+          MAX_NAME +
+          '" autocomplete="off" placeholder="종목 검색 (예: 벤치, ㅂㅊ, bench)" ' +
+          'aria-label="종목 검색" value="' +
+          Gym.esc(state.q) +
+          '">' +
+          '<ul class="suglist" id="a-sug">' +
+          suggestionsHTML() +
+          "</ul>" +
+          '<div id="a-picked">' +
+          pickedHTML() +
+          "</div>" +
+          '<div class="addgrid" style="margin-top:9px">' +
+          '<input id="a-load" type="number" step="0.5" min="0" max="' +
+          MAX_LOAD +
+          '" aria-label="중량 kg" placeholder="중량 kg" value="' +
+          (p && p.load ? p.load : "") +
+          '">' +
+          '<input id="a-sets" type="number" min="1" max="' +
+          MAX_SETS +
+          '" aria-label="세트 수" placeholder="세트 수" value="' +
+          (p ? p.sets : "") +
+          '">' +
+          '<input id="a-reps" maxlength="' +
+          MAX_REPS +
+          '" aria-label="반복" placeholder="반복 (예: 10-12회)" value="' +
+          (p ? Gym.esc(p.reps) : "") +
+          '">' +
+          '<input id="a-rest" type="number" min="0" max="' +
+          MAX_REST +
+          '" aria-label="휴식 초" placeholder="휴식 초" value="' +
+          (p ? p.rest : "") +
+          '">' +
+          '</div><div class="ptools"><button class="btn" id="a-go" data-day="' +
+          Gym.esc(day.id) +
+          '">추가하기</button></div></div>'
+        );
+      }
+
       function renderDay(day) {
         document.documentElement.style.setProperty("--accent", day.accent);
         var h =
@@ -1504,26 +1971,7 @@
         });
         h += "</div>";
 
-        h +=
-          '<div class="addbox"><h4>이 날에 종목 추가</h4><div class="addgrid">' +
-          '<input class="full" id="a-name" maxlength="' +
-          MAX_NAME +
-          '" placeholder="종목 이름">' +
-          '<input id="a-load" type="number" step="0.5" min="0" max="' +
-          MAX_LOAD +
-          '" placeholder="중량 kg">' +
-          '<input id="a-sets" type="number" min="1" max="' +
-          MAX_SETS +
-          '" placeholder="세트 수">' +
-          '<input id="a-reps" maxlength="' +
-          MAX_REPS +
-          '" placeholder="반복 (예: 10-12회)">' +
-          '<input id="a-rest" type="number" min="0" max="' +
-          MAX_REST +
-          '" placeholder="휴식 초">' +
-          '</div><div class="ptools"><button class="btn" id="a-go" data-day="' +
-          Gym.esc(day.id) +
-          '">추가하기</button></div></div>';
+        h += addBoxHTML(day);
 
         h +=
           '<div class="foot"><h3>중량 올리는 기준</h3>' +
@@ -1539,6 +1987,150 @@
           h +=
             '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아. 직접 호스팅하면 정상 저장돼.</div>';
         }
+        return h;
+      }
+
+      /* ---------- 캘린더 ---------- */
+      var DOW = ["일", "월", "화", "수", "목", "금", "토"];
+      var VOLUME_LEVELS = [0.34, 0.67]; // 그 달 최대 볼륨 대비 색 농도 구간
+
+      function volumeLevel(volume, max) {
+        if (!max || !volume) return 1;
+        var ratio = volume / max;
+        if (ratio <= VOLUME_LEVELS[0]) return 1;
+        if (ratio <= VOLUME_LEVELS[1]) return 2;
+        return 3;
+      }
+
+      function calCellHTML(key, cal, monthMax) {
+        if (!key) return '<div class="calcell pad"></div>';
+        var day = cal[key];
+        var num = +key.slice(8);
+        var cls = "calcell";
+        if (key === today()) cls += " today";
+        if (key === state.calDay) cls += " sel";
+        if (day) cls += " has lv" + volumeLevel(day.volume, monthMax);
+
+        if (!day) {
+          return '<div class="' + cls + '">' + num + "</div>";
+        }
+        return (
+          '<button class="' +
+          cls +
+          '" data-calday="' +
+          Gym.esc(key) +
+          '" aria-label="' +
+          Gym.esc(Gym.shortDate(key)) +
+          " " +
+          day.count +
+          '종목">' +
+          num +
+          "<i></i></button>"
+        );
+      }
+
+      function calDayDetailHTML(cal) {
+        if (!state.calDay) {
+          return '<div class="empty">날짜를 누르면 그날 한 운동이 나와.</div>';
+        }
+        var day = cal[state.calDay];
+        if (!day) {
+          return (
+            '<div class="empty">' +
+            Gym.esc(Gym.shortDate(state.calDay)) +
+            " 에는 기록이 없어.</div>"
+          );
+        }
+
+        var h = '<div class="calday"><div class="caldayhead"><h3>' +
+          Gym.esc(Gym.shortDate(state.calDay)) +
+          "</h3><span>" +
+          day.count +
+          "종목 · " +
+          day.sets +
+          "세트" +
+          (day.volume ? " · 볼륨 " + Gym.formatNumber(day.volume) + "kg" : "") +
+          "</span></div>";
+
+        var ordered = day.exercises.slice().sort(function (a, b) {
+          return b.volume - a.volume;
+        });
+        ordered.forEach(function (item) {
+          var color = categoryColor(exerciseCategory(item.id));
+          h +=
+            '<div class="calex" style="border-left-color:' +
+            color +
+            '">' +
+            '<div class="n">' +
+            Gym.esc(exerciseName(item.id)) +
+            "</div>" +
+            '<div class="s">' +
+            Gym.esc(Gym.formatSetLine(item.sets)) +
+            "</div>" +
+            (item.volume
+              ? '<div class="v">볼륨 ' +
+                Gym.formatNumber(item.volume) +
+                "kg" +
+                (item.top != null ? " · 최고 " + item.top + "kg" : "") +
+                "</div>"
+              : "") +
+            "</div>";
+        });
+        h += "</div>";
+        return h;
+      }
+
+      function renderCalendar() {
+        document.documentElement.style.setProperty("--accent", "#22754A");
+        var cal = Gym.buildCalendar(logs);
+        var stats = Gym.monthStats(cal, state.calYear, state.calMonth);
+        var weeks = Gym.monthMatrix(state.calYear, state.calMonth);
+
+        var monthMax = 0;
+        var prefix =
+          state.calYear + "-" + (state.calMonth + 1 < 10 ? "0" : "") + (state.calMonth + 1) + "-";
+        Object.keys(cal).forEach(function (k) {
+          if (k.indexOf(prefix) === 0 && cal[k].volume > monthMax)
+            monthMax = cal[k].volume;
+        });
+
+        var h =
+          '<div class="calhead">' +
+          "<h2>" +
+          Gym.esc(Gym.monthLabel(state.calYear, state.calMonth)) +
+          "</h2>" +
+          '<button class="calnav" data-cal="-1" aria-label="이전 달">‹</button>' +
+          '<button class="calnav" data-cal="1" aria-label="다음 달">›</button>' +
+          "</div>";
+
+        h +=
+          '<div class="calstat">' +
+          "<span>운동한 날 <b>" +
+          stats.days +
+          "</b>일</span>" +
+          "<span>총 <b>" +
+          stats.sets +
+          "</b>세트</span>" +
+          "<span>총 볼륨 <b>" +
+          Gym.formatNumber(stats.volume) +
+          "</b>kg</span>" +
+          "</div>";
+
+        h += '<div class="calgrid"><div class="caldow">';
+        DOW.forEach(function (d) {
+          h += "<span>" + d + "</span>";
+        });
+        h += "</div>";
+        weeks.forEach(function (week) {
+          h += '<div class="calweek">';
+          week.forEach(function (key) {
+            h += calCellHTML(key, cal, monthMax);
+          });
+          h += "</div>";
+        });
+        h += "</div>";
+
+        h += calDayDetailHTML(cal);
         return h;
       }
 
@@ -1611,7 +2203,9 @@
       function render() {
         renderTabs();
         var v = document.getElementById("view");
-        if (state.tab === "hist") {
+        if (state.tab === "cal") {
+          v.innerHTML = renderCalendar() + dataBoxHTML();
+        } else if (state.tab === "hist") {
           document.documentElement.style.setProperty("--accent", "#B72B27");
           v.innerHTML = renderHist() + dataBoxHTML();
         } else {
@@ -1715,7 +2309,8 @@
       /* ============ events ============ */
       var CLICK_SELECTOR =
         "[data-tab],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
-        "#a-go,#d-export,#d-import,#d-reset,#alert";
+        "[data-cal],[data-calday],[data-cat],[data-pick]," +
+        "#a-go,#a-clear,#d-export,#d-import,#d-reset,#alert";
 
       function toggleCard(rowEl) {
         var id = rowEl.dataset.toggle;
@@ -1724,33 +2319,115 @@
         rowEl.setAttribute("aria-expanded", state.open[id] ? "true" : "false");
       }
 
+      function setVal(id, v) {
+        var el = document.getElementById(id);
+        if (el) el.value = v;
+      }
+
+      function updateSuggestions() {
+        var sug = document.getElementById("a-sug");
+        if (sug) sug.innerHTML = suggestionsHTML();
+        var picked = document.getElementById("a-picked");
+        if (picked) picked.innerHTML = pickedHTML();
+      }
+
+      function selectCategory(catId) {
+        state.cat = catId || null;
+        state.pick = null;
+        var chips = document.getElementById("a-cats");
+        if (chips) chips.outerHTML = catChipsHTML();
+        updateSuggestions();
+      }
+
+      function pickExercise(id) {
+        var e = GymExercises.BY_ID[id];
+        if (!e) return;
+        state.pick = e;
+        state.q = e.name;
+        setVal("a-name", e.name);
+        setVal("a-load", e.load || "");
+        setVal("a-sets", e.sets);
+        setVal("a-reps", e.reps);
+        setVal("a-rest", e.rest);
+        updateSuggestions();
+      }
+
+      function clearPick() {
+        state.pick = null;
+        state.q = "";
+        ["a-name", "a-load", "a-sets", "a-reps", "a-rest"].forEach(function (id) {
+          setVal(id, "");
+        });
+        updateSuggestions();
+        var input = document.getElementById("a-name");
+        if (input) input.focus();
+      }
+
+      /* 같은 날에 같은 이름이 두 번 뜨면 어느 카드에 적었는지 헷갈린다. */
+      function dayHasExercise(dayId, name, id) {
+        var day = DAYS.filter(function (d) {
+          return d.id === dayId;
+        })[0];
+        var list = WARM.concat(day ? day.main : [], CIRCUIT, custom[dayId] || []);
+        return list.some(function (e) {
+          return e.name === name || e.id === id;
+        });
+      }
+
       function addExercise(dayId) {
-        var name = document.getElementById("a-name").value.trim();
+        var pick = state.pick;
+        var name = (pick ? pick.name : document.getElementById("a-name").value)
+          .trim()
+          .slice(0, MAX_NAME);
         if (!name) {
-          notify("종목 이름을 적어줘.");
+          notify("종목을 검색해서 고르거나 이름을 직접 적어줘.");
           return;
         }
+
+        /* 카탈로그에서 고른 건 카탈로그 id 를 그대로 쓴다.
+           그래야 여러 요일에 넣어도 기록이 한 줄로 이어진다. */
+        var id = pick ? pick.id : "x-" + Date.now();
+        if (dayHasExercise(dayId, name, id)) {
+          notify(name + " 은(는) 이 날에 이미 있어.");
+          return;
+        }
+
         var load = parseFloat(document.getElementById("a-load").value);
         var sets = parseInt(document.getElementById("a-sets").value, 10);
         var rest = parseInt(document.getElementById("a-rest").value, 10);
+        var reps = document
+          .getElementById("a-reps")
+          .value.trim()
+          .slice(0, MAX_REPS);
 
-        custom[dayId] = (custom[dayId] || []).concat([
-          {
-            id: "x-" + Date.now(),
-            name: name.slice(0, MAX_NAME),
-            load: isFinite(load) && load >= 0 && load <= MAX_LOAD ? load : 0,
-            unit: "kg",
-            sets: Math.min(MAX_SETS, Math.max(1, sets || 3)),
-            reps:
-              document
-                .getElementById("a-reps")
-                .value.trim()
-                .slice(0, MAX_REPS) || "10-12회",
-            rest: Math.min(MAX_REST, Math.max(0, isFinite(rest) ? rest : 60)),
-          },
-        ]);
+        var entry = {
+          id: id,
+          name: name,
+          load:
+            isFinite(load) && load >= 0 && load <= MAX_LOAD
+              ? load
+              : pick
+                ? pick.load
+                : 0,
+          unit: pick ? pick.unit : "kg",
+          sets: Math.min(MAX_SETS, Math.max(1, sets || (pick ? pick.sets : 3))),
+          reps: reps || (pick ? pick.reps : "10-12회"),
+          rest: Math.min(
+            MAX_REST,
+            Math.max(0, isFinite(rest) ? rest : pick ? pick.rest : 60),
+          ),
+        };
+        if (pick) {
+          entry.cat = pick.cat;
+          if (pick.plates) entry.plates = true;
+        }
+
+        custom[dayId] = (custom[dayId] || []).concat([entry]);
+        state.pick = null;
+        state.q = "";
         saveCustom();
         render();
+        notify(name + " 추가했어.", "good");
       }
 
       function deleteExercise(dayId, exId) {
@@ -1845,6 +2522,33 @@
           return;
         }
 
+        if (t.dataset.cal) {
+          var m = Gym.shiftMonth(state.calYear, state.calMonth, +t.dataset.cal);
+          state.calYear = m.year;
+          state.calMonth = m.month;
+          state.calDay = null;
+          render();
+          return;
+        }
+        if (t.dataset.calday) {
+          state.calDay =
+            state.calDay === t.dataset.calday ? null : t.dataset.calday;
+          render();
+          return;
+        }
+        if (t.hasAttribute("data-cat")) {
+          selectCategory(t.dataset.cat);
+          return;
+        }
+        if (t.dataset.pick) {
+          pickExercise(t.dataset.pick);
+          return;
+        }
+        if (t.id === "a-clear") {
+          clearPick();
+          return;
+        }
+
         if (t.dataset.form) {
           window.open(
             "https://www.youtube.com/results?search_query=" +
@@ -1873,14 +2577,29 @@
         }
       });
 
-      /* 종목 카드는 role="button" 이니 Enter/Space 로도 열려야 한다. */
+      /* 검색창에서 Enter 는 첫 번째 후보를 고른다. */
       document.addEventListener("keydown", function (ev) {
+        if (ev.target.id === "a-name" && ev.key === "Enter") {
+          ev.preventDefault();
+          var first = document.querySelector("#a-sug [data-pick]");
+          if (first) pickExercise(first.dataset.pick);
+          return;
+        }
+
+        /* 종목 카드는 role="button" 이니 Enter/Space 로도 열려야 한다. */
         if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar")
           return;
         var row = ev.target.closest ? ev.target.closest("[data-toggle]") : null;
         if (!row) return;
         ev.preventDefault();
         toggleCard(row);
+      });
+
+      document.addEventListener("input", function (ev) {
+        if (ev.target.id !== "a-name") return;
+        state.q = ev.target.value;
+        state.pick = null;
+        updateSuggestions();
       });
 
       document.addEventListener("change", function (ev) {

@@ -198,7 +198,7 @@
         if (!ex || typeof ex.id !== 'string' || !ex.id) return;
         var name = str(ex.name, MAX_NAME, null);
         if (!name) return;
-        list.push({
+        var item = {
           id: ex.id.slice(0, MAX_NAME),
           name: name,
           load: num(ex.load, MAX_LOAD) || 0,
@@ -206,7 +206,12 @@
           sets: Math.min(MAX_SETS, Math.max(1, parseInt(ex.sets, 10) || 3)),
           reps: str(ex.reps, MAX_REPS, '10-12회'),
           rest: Math.min(MAX_REST, Math.max(0, parseInt(ex.rest, 10) || 60))
-        });
+        };
+        /* 부위 태그와 원판 표시 여부는 백업 왕복에서 잃지 않는다. */
+        var cat = str(ex.cat, MAX_UNIT, null);
+        if (cat) item.cat = cat;
+        if (ex.plates) item.plates = true;
+        list.push(item);
       });
       if (list.length) out[String(dayId)] = list;
     });
@@ -241,6 +246,152 @@
       });
     });
     return out;
+  }
+
+  /* ---------- 종목 검색 (초성 지원) ---------- */
+
+  var CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ';
+  var HANGUL_FIRST = 0xac00;
+  var HANGUL_LAST = 0xd7a3;
+  var SYLLABLES_PER_CHO = 588;
+  var CHOSUNG_ONLY = /^[ㄱ-ㅎ]+$/;
+  var DEFAULT_LIMIT = 12;
+
+  /* '벤치프레스' → 'ㅂㅊㅍㄹㅅ'. 한글이 아닌 글자는 그대로 둔다. */
+  function chosung(s) {
+    var src = String(s == null ? '' : s);
+    var out = '';
+    for (var i = 0; i < src.length; i++) {
+      var code = src.charCodeAt(i);
+      if (code >= HANGUL_FIRST && code <= HANGUL_LAST) {
+        out += CHO.charAt(Math.floor((code - HANGUL_FIRST) / SYLLABLES_PER_CHO));
+      } else {
+        out += src.charAt(i);
+      }
+    }
+    return out;
+  }
+
+  function isChosungQuery(q) { return CHOSUNG_ONLY.test(q); }
+
+  /* 순위: 같은 단어로 이어지는 앞부분 일치 > 단어 경계 앞부분 일치 > 중간 일치 > 영문 별칭.
+     '벤치' 로 검색하면 '벤치프레스' 가 '벤치 딥스' 보다 먼저 나와야 한다. */
+  var HIT_PREFIX_WORD = 0;
+  var HIT_PREFIX_BREAK = 1;
+  var HIT_CONTAINS = 2;
+  var HIT_ALIAS = 3;
+
+  function prefixScore(haystack, q) {
+    var next = haystack.charAt(q.length);
+    return next === '' || next === ' ' ? HIT_PREFIX_BREAK : HIT_PREFIX_WORD;
+  }
+
+  function searchExercises(list, query, catId, limit) {
+    var pool = (list || []).filter(function (e) {
+      return !catId || e.cat === catId;
+    });
+    var q = String(query == null ? '' : query).trim().toLowerCase();
+    var max = limit || DEFAULT_LIMIT;
+    if (!q) return pool.slice(0, max);
+
+    var byChosung = isChosungQuery(q);
+    var hits = [];
+    pool.forEach(function (e) {
+      var score = -1;
+      if (byChosung) {
+        var cho = chosung(e.name);
+        var ci = cho.indexOf(q);
+        if (ci === 0) score = prefixScore(cho, q);
+        else if (ci > 0) score = HIT_CONTAINS;
+      } else {
+        var name = e.name.toLowerCase();
+        var ni = name.indexOf(q);
+        if (ni === 0) score = prefixScore(name, q);
+        else if (ni > 0) score = HIT_CONTAINS;
+        else if (e.alias && e.alias.toLowerCase().indexOf(q) >= 0) score = HIT_ALIAS;
+      }
+      if (score >= 0) hits.push({ e: e, score: score });
+    });
+    hits.sort(function (a, b) {
+      if (a.score !== b.score) return a.score - b.score;
+      if (a.e.name.length !== b.e.name.length) return a.e.name.length - b.e.name.length;
+      return a.e.name < b.e.name ? -1 : 1;
+    });
+    return hits.slice(0, max).map(function (h) { return h.e; });
+  }
+
+  /* ---------- 캘린더 ---------- */
+
+  function setVolume(s) {
+    return s && s.w != null && s.r != null ? s.w * s.r : 0;
+  }
+
+  /* 종목별로 흩어진 logs 를 날짜별로 뒤집는다. { '2026-08-07': {count, sets, volume, exercises} } */
+  function buildCalendar(logs) {
+    var out = {};
+    Object.keys(logs || {}).forEach(function (exId) {
+      var arr = logs[exId];
+      if (!Array.isArray(arr)) return;
+      arr.forEach(function (e) {
+        if (!e || !isDateKey(e.date) || !Array.isArray(e.sets)) return;
+        var used = e.sets.filter(function (s) {
+          return s && (s.w != null || s.r != null || s.done);
+        });
+        if (!used.length) return;
+        var vol = used.reduce(function (a, s) { return a + setVolume(s); }, 0);
+        var day = out[e.date] || (out[e.date] = {
+          date: e.date, exercises: [], count: 0, sets: 0, volume: 0
+        });
+        day.exercises.push({ id: exId, sets: used, volume: vol, top: topSet(e) });
+        day.count += 1;
+        day.sets += used.length;
+        day.volume += vol;
+      });
+    });
+    return out;
+  }
+
+  /* 달력 격자. 앞뒤 빈 칸은 null. month 는 0-based. */
+  function monthMatrix(year, month) {
+    var startDow = new Date(year, month, 1).getDay();
+    var total = new Date(year, month + 1, 0).getDate();
+    var cells = [];
+    for (var i = 0; i < startDow; i++) cells.push(null);
+    for (var d = 1; d <= total; d++) cells.push(dateKey(new Date(year, month, d)));
+    while (cells.length % 7 !== 0) cells.push(null);
+    var weeks = [];
+    for (var j = 0; j < cells.length; j += 7) weeks.push(cells.slice(j, j + 7));
+    return weeks;
+  }
+
+  function shiftMonth(year, month, delta) {
+    var d = new Date(year, month + delta, 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }
+
+  function monthLabel(year, month) { return year + '년 ' + (month + 1) + '월'; }
+
+  function monthStats(cal, year, month) {
+    var prefix = year + '-' + pad2(month + 1) + '-';
+    var days = 0, volume = 0, sets = 0;
+    Object.keys(cal || {}).forEach(function (k) {
+      if (k.indexOf(prefix) !== 0) return;
+      days += 1;
+      volume += cal[k].volume;
+      sets += cal[k].sets;
+    });
+    return { days: days, volume: volume, sets: sets };
+  }
+
+  function formatSetLine(sets) {
+    return (sets || []).map(function (s) {
+      if (s.w == null && s.r == null) return '✓';
+      return (s.w == null ? '-' : s.w) + '×' + (s.r == null ? '-' : s.r);
+    }).join(', ');
+  }
+
+  function formatNumber(n) {
+    return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
   /* ---------- 그래프 ---------- */
@@ -308,6 +459,16 @@
     sanitizeCustom: sanitizeCustom,
     mergeLogs: mergeLogs,
     mergeCustom: mergeCustom,
+    chosung: chosung,
+    isChosungQuery: isChosungQuery,
+    searchExercises: searchExercises,
+    buildCalendar: buildCalendar,
+    monthMatrix: monthMatrix,
+    shiftMonth: shiftMonth,
+    monthLabel: monthLabel,
+    monthStats: monthStats,
+    formatSetLine: formatSetLine,
+    formatNumber: formatNumber,
     chartSVG: chartSVG
   };
 });

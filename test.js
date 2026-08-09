@@ -243,6 +243,193 @@ describe('chartSVG', function(){
   ok('0kg 만 있어도 깨지지 않는다', zero.indexOf('NaN') < 0);
 });
 
+/* ---------- 종목 카탈로그 ---------- */
+var Lib = require('./exercises.js');
+
+describe('exercises 카탈로그', function(){
+  ok('종목이 100개 이상 등록돼 있다', Lib.ALL.length >= 100);
+  eq('부위는 8개', Lib.CATEGORIES.length, 8);
+
+  var ids = {}, dupIds = [], names = {}, dupNames = [];
+  Lib.ALL.forEach(function(e){
+    if (ids[e.id]) dupIds.push(e.id); else ids[e.id] = 1;
+    if (names[e.name]) dupNames.push(e.name); else names[e.name] = 1;
+  });
+  eq('id 중복 없음', dupIds, []);
+  eq('이름 중복 없음', dupNames, []);
+
+  var catIds = Lib.CATEGORIES.map(function(c){ return c.id; });
+  var orphans = Lib.ALL.filter(function(e){ return catIds.indexOf(e.cat) < 0; })
+                       .map(function(e){ return e.id; });
+  eq('모든 종목이 유효한 부위에 속한다', orphans, []);
+
+  var bad = Lib.ALL.filter(function(e){
+    return !e.name || !e.reps || typeof e.sets !== 'number' || e.sets < 1
+        || typeof e.rest !== 'number' || e.rest < 0 || typeof e.load !== 'number';
+  }).map(function(e){ return e.id; });
+  eq('필수 필드가 빠진 종목 없음', bad, []);
+
+  eq('id 에 lib- 접두어가 붙는다', Lib.ALL[0].id.slice(0, 4), 'lib-');
+  ok('BY_ID 로 찾을 수 있다', Lib.BY_ID['lib-bench'].name === '벤치프레스');
+
+  catIds.forEach(function(c){
+    ok(c + ' 부위에 종목이 있다', Lib.byCategory(c).length > 0);
+  });
+  eq('부위 이름을 돌려준다', Lib.categoryName('chest'), '가슴');
+  eq('없는 부위는 빈 문자열', Lib.categoryName('nope'), '');
+
+  // 카탈로그에서 고른 종목이 그대로 custom 으로 저장돼도 검증을 통과해야 한다
+  var round = Gym.sanitizeCustom({ d1: [Lib.BY_ID['lib-bench']] }).d1[0];
+  eq('백업 왕복에서 부위가 남는다', round.cat, 'chest');
+  eq('백업 왕복에서 원판 표시가 남는다', round.plates, true);
+  eq('백업 왕복에서 이름이 남는다', round.name, '벤치프레스');
+});
+
+/* ---------- 초성 검색 ---------- */
+describe('chosung', function(){
+  eq('한글을 초성으로', Gym.chosung('벤치프레스'), 'ㅂㅊㅍㄹㅅ');
+  eq('받침이 있어도 초성만', Gym.chosung('백스쿼트'), 'ㅂㅅㅋㅌ');
+  eq('된소리 초성', Gym.chosung('딥스'), 'ㄷㅅ');
+  eq('한글이 아니면 그대로', Gym.chosung('EZ바 컬'), 'EZㅂ ㅋ');
+  eq('빈 값도 안전', Gym.chosung(null), '');
+  ok('초성 질의를 알아본다', Gym.isChosungQuery('ㅂㅊ'));
+  check('완성형은 초성 질의가 아니다', !Gym.isChosungQuery('벤치'));
+});
+
+describe('searchExercises', function(){
+  var L = Lib.ALL;
+
+  eq('질의가 없으면 앞에서부터 채운다', Gym.searchExercises(L, '', null, 5).length, 5);
+
+  var bench = Gym.searchExercises(L, '벤치', null, 20);
+  ok('이름 일부로 찾는다', bench.length > 0);
+  // '벤치 딥스' 도 '벤치' 로 시작하지만, 같은 단어로 이어지는 쪽이 우선
+  eq('앞부분이 일치하면 먼저 나온다', bench[0].name, '벤치프레스');
+  ok('단어가 끊기는 후보도 결과에는 들어간다',
+     bench.some(function(e){ return e.name === '벤치 딥스'; }));
+
+  var cho = Gym.searchExercises(L, 'ㅂㅊㅍㄹㅅ', null, 5);
+  eq('초성으로 찾는다', cho[0].name, '벤치프레스');
+
+  var partial = Gym.searchExercises(L, 'ㅅㅋㅌ', null, 30);
+  ok('부분 초성도 찾는다', partial.some(function(e){ return e.name === '고블릿 스쿼트'; }));
+
+  var eng = Gym.searchExercises(L, 'deadlift', null, 5);
+  ok('영문 별칭으로 찾는다', eng.some(function(e){ return e.name === '데드리프트'; }));
+
+  var caps = Gym.searchExercises(L, 'DEADLIFT', null, 5);
+  ok('영문 대소문자를 가리지 않는다', caps.length > 0);
+
+  var legs = Gym.searchExercises(L, '', 'legs', 100);
+  eq('부위로 거른다', legs.filter(function(e){ return e.cat !== 'legs'; }), []);
+  ok('하체 종목이 여러 개', legs.length > 10);
+
+  var narrowed = Gym.searchExercises(L, '컬', 'biceps', 100);
+  eq('부위 + 질의를 함께 적용', narrowed.filter(function(e){ return e.cat !== 'biceps'; }), []);
+  ok('이두 컬이 잡힌다', narrowed.length > 0);
+
+  eq('없는 종목은 빈 배열', Gym.searchExercises(L, '존재하지않는종목', null, 5), []);
+  eq('상한을 지킨다', Gym.searchExercises(L, '', null, 3).length, 3);
+  eq('빈 목록도 안전', Gym.searchExercises(null, '벤치', null, 5), []);
+});
+
+/* ---------- 캘린더 ---------- */
+var CAL_LOGS = {
+  bench: [
+    { date: '2026-08-03', sets: [{ w: 40, r: 10, done: true }, { w: 40, r: 8, done: true }] },
+    { date: '2026-08-10', sets: [{ w: 45, r: 8, done: true }] }
+  ],
+  squat: [
+    { date: '2026-08-03', sets: [{ w: 60, r: 5, done: true }] },
+    { date: '2026-09-01', sets: [{ w: 65, r: 5, done: true }] }
+  ],
+  plank: [
+    { date: '2026-08-10', sets: [{ w: null, r: null, done: true }] }
+  ],
+  junk: 'not-an-array'
+};
+
+describe('buildCalendar', function(){
+  var cal = Gym.buildCalendar(CAL_LOGS);
+
+  eq('날짜별로 묶는다', Object.keys(cal).sort(), ['2026-08-03', '2026-08-10', '2026-09-01']);
+  eq('그날 한 종목 수', cal['2026-08-03'].count, 2);
+  eq('그날 세트 수', cal['2026-08-03'].sets, 3);
+  // 40×10 + 40×8 + 60×5 = 400 + 320 + 300
+  eq('볼륨은 중량×반복의 합', cal['2026-08-03'].volume, 1020);
+  eq('최고 중량도 담는다', cal['2026-08-03'].exercises[0].top, 40);
+
+  eq('체크만 한 맨몸 종목도 센다', cal['2026-08-10'].count, 2);
+  eq('반복수가 없는 세트는 볼륨에 0으로 들어간다', cal['2026-08-10'].volume, 45 * 8);
+
+  eq('배열이 아닌 값은 무시', 'junk' in cal, false);
+  eq('빈 입력도 안전', Gym.buildCalendar(null), {});
+
+  var emptyOnly = Gym.buildCalendar({ x: [{ date: '2026-08-01', sets: [{ w: null, r: null, done: false }] }] });
+  eq('값 없는 날은 달력에 안 올린다', Object.keys(emptyOnly), []);
+
+  var badDate = Gym.buildCalendar({ x: [{ date: 'nope', sets: [{ w: 10, r: 10 }] }] });
+  eq('날짜 형식이 틀리면 무시', Object.keys(badDate), []);
+});
+
+describe('monthMatrix', function(){
+  // 2026-08-01 은 토요일 → 첫 주는 앞에 6칸이 빈다
+  var aug = Gym.monthMatrix(2026, 7);
+  eq('한 주는 7칸', aug[0].length, 7);
+  eq('첫 날 앞의 빈 칸', aug[0].slice(0, 6), [null, null, null, null, null, null]);
+  eq('첫 날은 토요일 자리', aug[0][6], '2026-08-01');
+
+  var flat = [].concat.apply([], aug).filter(Boolean);
+  eq('8월은 31일', flat.length, 31);
+  eq('마지막 날', flat[flat.length - 1], '2026-08-31');
+  eq('격자는 항상 7의 배수', [].concat.apply([], aug).length % 7, 0);
+
+  var feb = [].concat.apply([], Gym.monthMatrix(2026, 1)).filter(Boolean);
+  eq('평년 2월은 28일', feb.length, 28);
+  var feb2024 = [].concat.apply([], Gym.monthMatrix(2024, 1)).filter(Boolean);
+  eq('윤년 2월은 29일', feb2024.length, 29);
+});
+
+describe('shiftMonth / monthLabel / monthStats', function(){
+  eq('다음 달', Gym.shiftMonth(2026, 7, 1), { year: 2026, month: 8 });
+  eq('12월에서 넘기면 해가 바뀐다', Gym.shiftMonth(2026, 11, 1), { year: 2027, month: 0 });
+  eq('1월에서 뒤로 가면 작년', Gym.shiftMonth(2026, 0, -1), { year: 2025, month: 11 });
+  eq('여러 달 건너뛰기', Gym.shiftMonth(2026, 7, -9), { year: 2025, month: 10 });
+
+  eq('라벨은 1-based 로 표시', Gym.monthLabel(2026, 7), '2026년 8월');
+
+  var cal = Gym.buildCalendar(CAL_LOGS);
+  var aug = Gym.monthStats(cal, 2026, 7);
+  eq('그 달 운동한 날', aug.days, 2);
+  // 8/3 에 3세트(벤치 2 + 스쿼트 1), 8/10 에 2세트(벤치 1 + 플랭크 1)
+  eq('그 달 총 세트', aug.sets, 5);
+  eq('그 달 총 볼륨', aug.volume, 1020 + 360);
+
+  var sep = Gym.monthStats(cal, 2026, 8);
+  eq('다른 달은 따로 센다', sep.days, 1);
+  eq('기록 없는 달은 0', Gym.monthStats(cal, 2026, 0), { days: 0, volume: 0, sets: 0 });
+
+  // 한 자리 월이 두 자리 월에 섞이면 안 된다 ('2026-1-' 로 자르면 2026-10-* 가 걸린다)
+  var octOnly = Gym.buildCalendar({ x: [{ date: '2026-10-05', sets: [{ w: 10, r: 10 }] }] });
+  eq('1월 조회가 10월 기록을 끌어오지 않는다', Gym.monthStats(octOnly, 2026, 0).days, 0);
+  eq('10월은 제대로 센다', Gym.monthStats(octOnly, 2026, 9).days, 1);
+});
+
+describe('formatSetLine / formatNumber', function(){
+  eq('중량×반복으로 적는다',
+     Gym.formatSetLine([{ w: 40, r: 10 }, { w: 45, r: 8 }]), '40×10, 45×8');
+  eq('빠진 값은 대시', Gym.formatSetLine([{ w: 40, r: null }]), '40×-');
+  eq('체크만 한 세트는 표시만', Gym.formatSetLine([{ w: null, r: null, done: true }]), '✓');
+  eq('빈 배열은 빈 문자열', Gym.formatSetLine([]), '');
+
+  eq('천 단위 구분', Gym.formatNumber(1020), '1,020');
+  eq('백만 단위', Gym.formatNumber(1234567), '1,234,567');
+  eq('세 자리 이하는 그대로', Gym.formatNumber(999), '999');
+  eq('0 도 안전', Gym.formatNumber(0), '0');
+  eq('빈 값은 0', Gym.formatNumber(null), '0');
+  eq('소수는 반올림', Gym.formatNumber(1020.6), '1,021');
+});
+
 /* ---------- 결과 ---------- */
 if (failures.length){
   console.error('\n  실패 ' + failures.length + '건\n');
