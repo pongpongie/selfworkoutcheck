@@ -492,6 +492,33 @@
     return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
+  /* 같은 운동이 서로 다른 id 로 쌓일 수 있다 — 내장 루틴 id(d1-bench)와
+     카탈로그 id(lib-bench). 이름으로 묶어 하나의 추이로 만든다.
+     같은 날 두 id 에 값이 있으면 더 무거운 쪽을 그날 대표로 삼는다. */
+  function seriesByName(logs, nameOf) {
+    var byName = {};
+    Object.keys(logs || {}).forEach(function (id) {
+      var arr = logs[id];
+      if (!Array.isArray(arr)) return;
+      var name = nameOf ? nameOf(id) : id;
+      if (!name) return;
+      var byDate = byName[name] || (byName[name] = {});
+      arr.forEach(function (e) {
+        if (!e || !isDateKey(e.date)) return;
+        var t = topSet(e);
+        if (t == null) return;
+        if (byDate[e.date] == null || t > byDate[e.date]) byDate[e.date] = t;
+      });
+    });
+    var out = {};
+    Object.keys(byName).forEach(function (name) {
+      var dates = Object.keys(byName[name]).sort();
+      if (!dates.length) return;
+      out[name] = dates.map(function (d) { return { d: d, v: byName[name][d] }; });
+    });
+    return out;
+  }
+
   /* ---------- 그래프 ---------- */
 
   function chartSVG(series) {
@@ -576,6 +603,7 @@
     formatSetLine: formatSetLine,
     formatNumber: formatNumber,
     formatBytes: formatBytes,
+    seriesByName: seriesByName,
     chartSVG: chartSVG
   };
 });

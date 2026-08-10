@@ -1935,371 +1935,59 @@
         return h;
       }
 
+      /* 추이는 id 가 아니라 "같은 운동" 단위여야 한다. 내장 루틴과 카탈로그가
+         서로 다른 id 를 쓰는 탓에, id 로 묶으면 한 종목이 둘로 갈라진다. */
       function renderStats() {
-        var list = allExercises().filter(function (ex) {
-          var a = logs[ex.id] || [];
-          return a.some(function (e) {
-            return Gym.topSet(e) != null;
-          });
-        });
-        if (!list.length) {
+        var series = Gym.seriesByName(logs, exerciseName);
+        var names = Object.keys(series).sort();
+        if (!names.length) {
           return '<div class="empty">아직 기록이 없어.<br>종목을 눌러서 중량과 반복수를 입력하면<br>여기에 그래프가 쌓여.</div>';
         }
-        if (
-          !state.chartEx ||
-          !list.some(function (e) {
-            return e.id === state.chartEx;
-          })
-        )
-          state.chartEx = list[0].id;
+        if (!state.chartEx || names.indexOf(state.chartEx) < 0)
+          state.chartEx = names[0];
 
-        var h =
-          '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
-        list.forEach(function (ex) {
+        var h = '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
+        names.forEach(function (n) {
           h +=
             '<option value="' +
-            Gym.esc(ex.id) +
+            Gym.esc(n) +
             '"' +
-            (ex.id === state.chartEx ? " selected" : "") +
+            (n === state.chartEx ? " selected" : "") +
             ">" +
-            Gym.esc(ex.name) +
+            Gym.esc(n) +
             "</option>";
         });
         h += "</select>";
 
-        var arr = (logs[state.chartEx] || []).filter(function (e) {
-          return Gym.topSet(e) != null;
-        });
-        var series = arr.map(function (e) {
-          return { d: e.date, v: Gym.topSet(e) };
-        });
-        h += '<div class="chart">' + Gym.chartSVG(series) + "</div>";
+        h += '<div class="chart">' + Gym.chartSVG(series[state.chartEx]) + "</div>";
 
-        h += '<div class="hlist">';
-        arr
-          .slice()
-          .reverse()
-          .forEach(function (e) {
+        /* 이력도 같은 이름을 쓰는 id 를 전부 모아 날짜별로 합친다. */
+        var byDate = {};
+        Object.keys(logs).forEach(function (id) {
+          if (exerciseName(id) !== state.chartEx) return;
+          (logs[id] || []).forEach(function (e) {
             var used = e.sets.filter(function (s) {
               return s.w != null || s.r != null;
             });
-            var txt = used
-              .map(function (s) {
-                return (
-                  (s.w == null ? "-" : s.w) + "×" + (s.r == null ? "-" : s.r)
-                );
-              })
-              .join("  ");
+            if (!used.length) return;
+            (byDate[e.date] = byDate[e.date] || []).push(Gym.formatSetLine(used));
+          });
+        });
+
+        h += '<div class="hlist">';
+        Object.keys(byDate)
+          .sort()
+          .reverse()
+          .forEach(function (d) {
             h +=
               '<div class="hitem"><span class="d">' +
-              Gym.esc(Gym.shortDate(e.date)) +
+              Gym.esc(Gym.shortDate(d)) +
               '</span><span class="s">' +
-              Gym.esc(txt) +
+              Gym.esc(byDate[d].join("  ")) +
               "</span></div>";
           });
         h += "</div>";
         return h;
-      }
-
-      /* ---------- 테마 ---------- */
-      /* "system" 이면 속성을 지워 tokens.css 의 prefers-color-scheme 규칙에 맡긴다. */
-      function applyTheme(mode) {
-        var root = document.documentElement;
-        if (mode === "dark" || mode === "light") root.setAttribute("data-theme", mode);
-        else root.removeAttribute("data-theme");
-      }
-
-      function setTheme(mode) {
-        if (["system", "light", "dark"].indexOf(mode) < 0) return;
-        state.theme = mode;
-        applyTheme(mode);
-        try {
-          if (mode === "system") localStorage.removeItem(THEME_KEY);
-          else localStorage.setItem(THEME_KEY, mode);
-        } catch (e) {}
-        render();
-      }
-
-      (function initTheme() {
-        var saved = null;
-        try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
-        state.theme = saved === "dark" || saved === "light" ? saved : "system";
-        applyTheme(state.theme);
-      })();
-
-      function themeSegHTML() {
-        var opts = [
-          { id: "system", label: "시스템" },
-          { id: "light", label: "라이트" },
-          { id: "dark", label: "다크" },
-        ];
-        return (
-          '<div class="seg" role="group" aria-label="테마">' +
-          opts
-            .map(function (o) {
-              return (
-                '<button class="segbtn' +
-                (state.theme === o.id ? " on" : "") +
-                '" data-theme-set="' +
-                o.id +
-                '" aria-pressed="' +
-                (state.theme === o.id ? "true" : "false") +
-                '">' +
-                o.label +
-                "</button>"
-              );
-            })
-            .join("") +
-          "</div>"
-        );
-      }
-
-      /* ---------- 팁 ---------- */
-      function renderTips() {
-        var h =
-          '<div class="dayhead"><div class="num">TIPS</div><h2>훈련 팁</h2>' +
-          "<p>헷갈릴 때 열어보는 기준들</p></div>";
-
-        h += '<div class="sechead">중량 올리는 기준</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
-          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
-          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
-          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
-          "</div>";
-
-        h +=
-          '<div class="sechead">세트 · 휴식</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>큰 종목은 2-3분, 작은 종목은 60초.</b> 휴식이 짧으면 반복수가 떨어져 총볼륨이 준다.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>마지막 세트는 2개 남기고 멈춘다.</b> 매 세트 실패까지 가면 다음 날 회복이 안 된다.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>세트가 모자라면 ＋ 세트로 늘린다.</b> 직전 세트의 중량·반복수를 그대로 복사해준다.</div></div>' +
-          "</div>";
-
-        h +=
-          '<div class="sechead">기록 습관</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>세트 끝나자마자 적는다.</b> 나중에 몰아 적으면 반드시 틀린다.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>못 적었으면 날짜를 되돌려 적는다.</b> 운동 화면 위쪽 날짜 바에서 옮길 수 있다.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>가끔 설정에서 내보내기.</b> 기록은 이 브라우저에만 있다.</div></div>' +
-          "</div>";
-        return h;
-      }
-
-      /* ---------- 설정 ---------- */
-      function logStats() {
-        var days = {},
-          exercises = 0,
-          sets = 0;
-        Object.keys(logs).forEach(function (id) {
-          exercises += 1;
-          (logs[id] || []).forEach(function (e) {
-            days[e.date] = 1;
-            sets += e.sets.filter(function (s) {
-              return s.w != null || s.r != null || s.done;
-            }).length;
-          });
-        });
-        return {
-          exercises: exercises,
-          days: Object.keys(days).length,
-          sets: sets,
-        };
-      }
-
-      function storedBytes() {
-        try {
-          var raw =
-            JSON.stringify(logs || {}) + JSON.stringify(custom || {});
-          return new Blob([raw]).size;
-        } catch (e) {
-          return 0;
-        }
-      }
-
-      function renderSettings() {
-        var s = logStats();
-
-        var h = '<div class="dayhead"><div class="num">SETTINGS</div><h2>설정</h2></div>';
-
-        h +=
-          '<div class="sechead">화면</div>' +
-          '<div class="addbox">' +
-          themeSegHTML() +
-          '<div class="hint">시스템으로 두면 기기 설정을 따라간다.</div>' +
-          "</div>";
-
-        h +=
-          '<div class="sechead">앱 업데이트</div>' +
-          '<div class="addbox">' +
-          '<div class="srow"><span>캐시</span><b id="s-cache">확인 중…</b></div>' +
-          '<div class="srow"><span>서비스워커</span><b id="s-sw">확인 중…</b></div>' +
-          '<div class="ptools">' +
-          '<button class="btn" id="s-update">업데이트 확인</button>' +
-          '<button class="btn warnbtn" id="s-purge">캐시 비우고 새로고침</button>' +
-          "</div>" +
-          '<div class="hint">새 버전이 안 보이면 <b>캐시 비우고 새로고침</b>을 눌러.<br>' +
-          "앱 파일만 지우고 <b>운동 기록은 그대로 남는다.</b></div>" +
-          "</div>";
-
-        h +=
-          '<div class="sechead">저장 공간</div>' +
-          '<div class="addbox">' +
-          '<div class="srow"><span>기록한 날</span><b>' +
-          s.days +
-          "일</b></div>" +
-          '<div class="srow"><span>기록된 종목</span><b>' +
-          s.exercises +
-          "개</b></div>" +
-          '<div class="srow"><span>총 세트</span><b>' +
-          Gym.formatNumber(s.sets) +
-          "세트</b></div>" +
-          '<div class="srow"><span>기록 용량</span><b>' +
-          Gym.formatBytes(storedBytes()) +
-          "</b></div>" +
-          '<div class="srow"><span>브라우저 할당량</span><b id="s-quota">확인 중…</b></div>' +
-          "</div>";
-
-        h += '<div class="sechead">데이터</div>' + dataBoxHTML();
-
-        h +=
-          '<div class="sechead">앱 정보</div>' +
-          '<div class="addbox">' +
-          '<div class="srow"><span>실행 방식</span><b>' +
-          (window.matchMedia("(display-mode: standalone)").matches
-            ? "홈 화면 앱"
-            : "브라우저 탭") +
-          "</b></div>" +
-          '<div class="srow"><span>저장소</span><b>' +
-          (Store.ok ? "localStorage" : "메모리 (임시)") +
-          "</b></div>" +
-          '<div class="srow"><span>오프라인</span><b>' +
-          ("serviceWorker" in navigator ? "지원" : "미지원") +
-          "</b></div>" +
-          "</div>";
-
-        return h;
-      }
-
-      /* 캐시 이름·할당량은 비동기라 자리만 잡아두고 나중에 채운다. */
-      function fillSettingsAsync() {
-        var cacheEl = document.getElementById("s-cache");
-        var swEl = document.getElementById("s-sw");
-        var quotaEl = document.getElementById("s-quota");
-        if (!cacheEl) return;
-
-        if (window.caches) {
-          caches
-            .keys()
-            .then(function (keys) {
-              cacheEl.textContent = keys.length ? keys.join(", ") : "없음";
-            })
-            .catch(function () {
-              cacheEl.textContent = "확인 불가";
-            });
-        } else {
-          cacheEl.textContent = "미지원";
-        }
-
-        if ("serviceWorker" in navigator) {
-          navigator.serviceWorker
-            .getRegistration()
-            .then(function (reg) {
-              if (!reg) {
-                swEl.textContent = "미등록";
-              } else if (reg.waiting) {
-                swEl.textContent = "새 버전 대기 중";
-              } else if (reg.active) {
-                swEl.textContent = "동작 중";
-              } else {
-                swEl.textContent = "설치 중";
-              }
-            })
-            .catch(function () {
-              swEl.textContent = "확인 불가";
-            });
-        } else {
-          swEl.textContent = "미지원";
-        }
-
-        if (navigator.storage && navigator.storage.estimate) {
-          navigator.storage
-            .estimate()
-            .then(function (est) {
-              quotaEl.textContent =
-                Gym.formatBytes(est.usage || 0) +
-                " / " +
-                Gym.formatBytes(est.quota || 0);
-            })
-            .catch(function () {
-              quotaEl.textContent = "확인 불가";
-            });
-        } else {
-          quotaEl.textContent = "미지원";
-        }
-      }
-
-      function checkUpdate() {
-        if (!("serviceWorker" in navigator)) {
-          notify("이 브라우저는 서비스워커를 지원하지 않아.");
-          return;
-        }
-        navigator.serviceWorker
-          .getRegistration()
-          .then(function (reg) {
-            if (!reg) {
-              notify("서비스워커가 등록돼 있지 않아. http/https 로 열어야 등록돼.");
-              return null;
-            }
-            return reg.update().then(function () {
-              if (reg.installing || reg.waiting) {
-                notify("새 버전을 받았어. 새로고침하면 적용돼.", "good");
-              } else {
-                notify("이미 최신이야.", "good");
-              }
-            });
-          })
-          .catch(function () {
-            notify("업데이트를 확인하지 못했어. 네트워크를 확인해줘.");
-          });
-      }
-
-      /* 앱 파일 캐시만 비운다. localStorage 는 건드리지 않는다. */
-      function purgeCaches() {
-        if (
-          !window.confirm(
-            "앱 파일 캐시를 비우고 새로고침할까?\n운동 기록은 지워지지 않아.",
-          )
-        )
-          return;
-
-        var jobs = [];
-        if ("serviceWorker" in navigator) {
-          jobs.push(
-            navigator.serviceWorker.getRegistrations().then(function (regs) {
-              return Promise.all(
-                regs.map(function (r) {
-                  return r.unregister();
-                }),
-              );
-            }),
-          );
-        }
-        if (window.caches) {
-          jobs.push(
-            caches.keys().then(function (keys) {
-              return Promise.all(
-                keys.map(function (k) {
-                  return caches.delete(k);
-                }),
-              );
-            }),
-          );
-        }
-        Promise.all(jobs)
-          .catch(function () {})
-          .then(function () {
-            location.reload();
-          });
       }
 
       function render() {
@@ -2522,7 +2210,14 @@
 
         /* 카탈로그에서 고른 건 카탈로그 id 를 그대로 쓴다.
            그래야 여러 요일에 넣어도 기록이 한 줄로 이어진다. */
-        var id = pick ? pick.id : "x-" + Date.now();
+        /* 같은 이름이 다른 요일에 이미 있으면 그 id 를 그대로 쓴다.
+           안 그러면 같은 운동이 두 id 로 갈라져 추이가 반토막 난다. */
+        var existing = null;
+        var all = allExercises();
+        for (var ai = 0; ai < all.length; ai++) {
+          if (all[ai].name === name) { existing = all[ai].id; break; }
+        }
+        var id = existing || (pick ? pick.id : "x-" + Date.now());
         if (dayHasExercise(dayId, name, id)) {
           notify(name + " 은(는) 이 날에 이미 있어.");
           return;
@@ -2575,7 +2270,7 @@
         if (!custom[dayId].length) delete custom[dayId];
         delete logs[exId]; // 고아 기록을 남기지 않는다
         delete state.open[exId];
-        if (state.chartEx === exId) state.chartEx = null;
+        state.chartEx = null;
         saveCustom();
         saveLogs();
         render();

@@ -279,6 +279,43 @@ describe('mergeCustom', function(){
   eq('원본 base 는 그대로', base.d1[0].name, '옛이름');
 });
 
+/* ---------- 이름으로 묶은 추이 ---------- */
+describe('seriesByName', function(){
+  var names = { 'd1-bench': '벤치프레스', 'lib-bench': '벤치프레스', 'd1-row': '바벨로우' };
+  var nameOf = function(id){ return names[id] || id; };
+
+  var split = {
+    'd1-bench':  [{ date: '2026-08-05', sets: [{ w: 50, r: 8 }] }],
+    'lib-bench': [{ date: '2026-08-09', sets: [{ w: 52.5, r: 8 }] }],
+    'd1-row':    [{ date: '2026-08-05', sets: [{ w: 40, r: 10 }] }]
+  };
+  var out = Gym.seriesByName(split, nameOf);
+
+  // 내장 id 와 카탈로그 id 로 갈라져 있어도 한 종목으로 합쳐야 한다
+  eq('갈라진 id 를 이름으로 합친다', out['벤치프레스'].length, 2);
+  eq('날짜순 정렬', out['벤치프레스'].map(function(p){ return p.d; }),
+     ['2026-08-05', '2026-08-09']);
+  eq('값은 그날 최고 중량', out['벤치프레스'].map(function(p){ return p.v; }), [50, 52.5]);
+  eq('다른 종목은 따로', out['바벨로우'].length, 1);
+
+  // 같은 날 두 id 에 값이 있으면 무거운 쪽이 그날 대표
+  var sameDay = {
+    'a': [{ date: '2026-08-05', sets: [{ w: 50, r: 8 }] }],
+    'b': [{ date: '2026-08-05', sets: [{ w: 60, r: 5 }] }]
+  };
+  eq('같은 날은 무거운 쪽', Gym.seriesByName(sameDay, function(){ return '벤치'; })['벤치'],
+     [{ d: '2026-08-05', v: 60 }]);
+
+  // 중량 없는 기록(맨몸)은 추이에 안 올린다
+  var bw = { p: [{ date: '2026-08-05', sets: [{ w: null, r: null, done: true }] }] };
+  eq('중량 없는 기록은 제외', Object.keys(Gym.seriesByName(bw, function(){ return '플랭크'; })), []);
+
+  eq('빈 입력도 안전', Gym.seriesByName(null, nameOf), {});
+  eq('배열 아닌 값은 무시', Gym.seriesByName({ x: 'oops' }, nameOf), {});
+  var badDate = { x: [{ date: 'nope', sets: [{ w: 50, r: 5 }] }] };
+  eq('날짜 형식이 틀리면 무시', Object.keys(Gym.seriesByName(badDate, function(){ return 'x'; })), []);
+});
+
 /* ---------- 그래프 ---------- */
 describe('chartSVG', function(){
   ok('빈 시리즈는 안내 문구', Gym.chartSVG([]).indexOf('기록이 2회 이상') >= 0);
