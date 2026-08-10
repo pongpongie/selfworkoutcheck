@@ -418,6 +418,16 @@
     }).join(', ');
   }
 
+  var BYTE_UNITS = ['B', 'KB', 'MB', 'GB'];
+
+  function formatBytes(n) {
+    var v = Number(n);
+    if (!isFinite(v) || v <= 0) return '0 B';
+    var i = 0;
+    while (v >= 1024 && i < BYTE_UNITS.length - 1) { v /= 1024; i += 1; }
+    return (i === 0 ? Math.round(v) : v.toFixed(1)) + ' ' + BYTE_UNITS[i];
+  }
+
   function formatNumber(n) {
     return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
@@ -500,6 +510,7 @@
     monthStats: monthStats,
     formatSetLine: formatSetLine,
     formatNumber: formatNumber,
+    formatBytes: formatBytes,
     chartSVG: chartSVG
   };
 });

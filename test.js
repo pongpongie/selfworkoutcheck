@@ -471,6 +471,20 @@ describe('formatSetLine / formatNumber', function(){
   eq('소수는 반올림', Gym.formatNumber(1020.6), '1,021');
 });
 
+describe('formatBytes', function(){
+  eq('바이트는 정수로', Gym.formatBytes(512), '512 B');
+  eq('경계값 1023', Gym.formatBytes(1023), '1023 B');
+  eq('1024 는 KB 로 넘어간다', Gym.formatBytes(1024), '1.0 KB');
+  eq('킬로바이트', Gym.formatBytes(2048), '2.0 KB');
+  eq('메가바이트', Gym.formatBytes(5 * 1024 * 1024), '5.0 MB');
+  eq('기가바이트', Gym.formatBytes(3 * 1024 * 1024 * 1024), '3.0 GB');
+  eq('GB 를 넘어도 GB 로 표기', Gym.formatBytes(5000 * 1024 * 1024 * 1024), '5000.0 GB');
+  eq('0 은 0 B', Gym.formatBytes(0), '0 B');
+  eq('음수도 0 B', Gym.formatBytes(-5), '0 B');
+  eq('숫자가 아니면 0 B', Gym.formatBytes(null), '0 B');
+  eq('NaN 도 0 B', Gym.formatBytes('abc'), '0 B');
+});
+
 /* ---------- 결과 ---------- */
 if (failures.length){
   console.error('\n  실패 ' + failures.length + '건\n');
