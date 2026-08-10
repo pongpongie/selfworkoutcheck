@@ -509,6 +509,50 @@ describe('formatBytes', function(){
   eq('NaN 도 0 B', Gym.formatBytes('abc'), '0 B');
 });
 
+/* ---------- 하루 요약 (시간 · 메모) ---------- */
+describe('formatDuration', function(){
+  eq('한 시간 미만은 분', Gym.formatDuration(40), '40분');
+  eq('정확히 한 시간', Gym.formatDuration(60), '1시간');
+  eq('시간 + 분', Gym.formatDuration(95), '1시간 35분');
+  eq('두 시간 정각', Gym.formatDuration(120), '2시간');
+  eq('0 은 없음', Gym.formatDuration(0), null);
+  eq('음수도 없음', Gym.formatDuration(-5), null);
+  eq('null 도 없음', Gym.formatDuration(null), null);
+  eq('문자열 숫자는 받는다', Gym.formatDuration('40'), '40분');
+});
+
+describe('sanitizeDays', function(){
+  eq('객체가 아니면 빈 객체', Gym.sanitizeDays(null), {});
+  eq('날짜 형식이 틀리면 버린다', Gym.sanitizeDays({ 'x': { min: 40 } }), {});
+  eq('정상 값', Gym.sanitizeDays({ '2026-08-11': { min: 40, memo: '좋았음' } }),
+     { '2026-08-11': { min: 40, memo: '좋았음' } });
+  eq('시간만 있어도 남는다', Gym.sanitizeDays({ '2026-08-11': { min: 40 } }),
+     { '2026-08-11': { min: 40 } });
+  eq('메모만 있어도 남는다', Gym.sanitizeDays({ '2026-08-11': { memo: 'ㅇㅇ' } }),
+     { '2026-08-11': { memo: 'ㅇㅇ' } });
+  eq('둘 다 비면 버린다', Gym.sanitizeDays({ '2026-08-11': { min: 0, memo: '   ' } }), {});
+  eq('상한을 넘는 시간은 자른다',
+     Gym.sanitizeDays({ '2026-08-11': { min: 99999 } })['2026-08-11'].min, 1440);
+  eq('메모는 500자까지',
+     Gym.sanitizeDays({ '2026-08-11': { memo: 'ㅁ'.repeat(900) } })['2026-08-11'].memo.length, 500);
+  eq('메모 앞뒤 공백 제거',
+     Gym.sanitizeDays({ '2026-08-11': { memo: '  적었다  ' } })['2026-08-11'].memo, '적었다');
+});
+
+describe('mergeDays / pruneDays', function(){
+  var base = { '2026-08-10': { min: 30 }, '2026-08-11': { memo: '옛' } };
+  var inc  = { '2026-08-11': { memo: '새' }, '2026-08-12': { min: 50 } };
+  var out = Gym.mergeDays(base, inc);
+  eq('같은 날짜는 들여온 쪽', out['2026-08-11'].memo, '새');
+  eq('없던 날짜는 추가', out['2026-08-12'].min, 50);
+  eq('기존 날짜는 유지', out['2026-08-10'].min, 30);
+  eq('원본은 그대로', base['2026-08-11'].memo, '옛');
+  eq('빈 입력도 안전', Gym.mergeDays(null, null), {});
+
+  eq('빈 날은 걷어낸다',
+     Object.keys(Gym.pruneDays({ a: { min: 0 }, '2026-08-11': { min: 40 } })), ['2026-08-11']);
+});
+
 /* ---------- 결과 ---------- */
 if (failures.length){
   console.error('\n  실패 ' + failures.length + '건\n');

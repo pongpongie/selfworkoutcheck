@@ -345,6 +345,35 @@
       }
       .datenote b { flex: 1; font-weight: var(--w-medium); }
 
+      .summary { padding: var(--gap-md); }
+      .sumgrid {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 1px;
+        background: var(--line); border: 1px solid var(--line);
+        border-radius: var(--radius-button); overflow: hidden; margin-bottom: var(--gap-md);
+      }
+      .sumcell {
+        background: var(--surface); padding: 12px 14px;
+        display: flex; flex-direction: column; gap: 4px;
+      }
+      .sumcell span { font-size: var(--t-small); color: var(--text-3); }
+      .sumcell b {
+        font-family: var(--font-mono); font-size: var(--t-headline);
+        font-weight: var(--w-semibold); letter-spacing: -0.5px;
+      }
+      .sumcell b i { font-style: normal; font-size: var(--t-caption); color: var(--text-3); margin-left: 1px; }
+      .sumrow { display: flex; align-items: center; gap: var(--gap-md); margin-bottom: 10px; }
+      .sumrow label { font-size: var(--t-footnote); color: var(--text-3); flex: none; }
+      .sumrow .fld { flex: 1; }
+      .memofld {
+        width: 100%; padding: 12px; resize: vertical; min-height: 76px;
+        border: 1px solid var(--line); border-radius: var(--radius-button);
+        background: var(--bg-elevated); color: var(--text);
+        font-size: var(--t-footnote); line-height: 1.6;
+      }
+      .memofld:focus { outline: none; border-color: var(--accent); }
+      .calcell.future { opacity: 0.3; }
+      button.calcell { cursor: pointer; }
+
       /* ---------- calendar ---------- */
       .calhead { display: flex; align-items: center; gap: 10px; padding: var(--gap-lg) 0 4px; }
       .calhead h2 { font-size: var(--t-h4); line-height: 1.1; letter-spacing: var(--t-h4-ls); font-weight: var(--w-semibold); flex: 1; }
@@ -504,7 +533,8 @@
 
       /* ============ constants ============ */
       var K_LOG = "gym.logs.v1",
-        K_CUSTOM = "gym.custom.v1";
+        K_CUSTOM = "gym.custom.v1",
+        K_DAYS = "gym.days.v1";
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
@@ -556,6 +586,7 @@
 
       var logs = Store.get(K_LOG, {}); // { exId: [ {date, sets:[{w,r,done}]} ] }
       var custom = Store.get(K_CUSTOM, {}); // { dayId: [ exercise ] }
+      var days = Store.get(K_DAYS, {}); // { date: { min, memo } }
 
       function today() {
         return Gym.todayKey();
@@ -586,6 +617,13 @@
       function saveCustom() {
         if (Store.set(K_CUSTOM, custom)) return true;
         notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        return false;
+      }
+
+      function saveDays() {
+        days = Gym.pruneDays(days);
+        if (Store.set(K_DAYS, days)) return true;
+        notify("저장 공간이 부족해서 메모가 저장되지 않았어.");
         return false;
       }
 
@@ -1676,12 +1714,75 @@
 
         h += addBoxHTML(day);
 
+        h +=
+          '<div class="sechead">' +
+          Gym.esc(Gym.shortDate(recordDate())) +
+          " 요약</div>";
+        h += daySummaryHTML(recordDate(), null);
+
 
 
         if (!Store.ok) {
           h +=
             '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아. 직접 호스팅하면 정상 저장돼.</div>';
         }
+        return h;
+      }
+
+      /* ---------- 하루 요약 (시간 · 개수 · 볼륨 · 메모) ---------- */
+      /* 기록 탭에서는 고른 날짜, 운동 탭에서는 기록 날짜를 편집한다. */
+      function summaryDate() {
+        return state.section === "records" && state.calDay
+          ? state.calDay
+          : recordDate();
+      }
+
+      /* 세트를 입력해도 화면을 다시 그리지 않으니(포커스 유지), 이 숫자만 따로 갱신한다. */
+      function sumStatsHTML(date, cal) {
+        var day = (cal || Gym.buildCalendar(logs))[date];
+        var note = days[date] || {};
+        var dur = Gym.formatDuration(note.min);
+        return (
+          '<div class="sumcell"><span>운동 시간</span><b>' +
+          (dur ? Gym.esc(dur) : "—") +
+          "</b></div>" +
+          '<div class="sumcell"><span>운동 개수</span><b>' +
+          (day ? day.count : 0) +
+          "<i>개</i></b></div>" +
+          '<div class="sumcell"><span>전체 볼륨</span><b>' +
+          Gym.formatNumber(day ? day.volume : 0) +
+          "<i>kg</i></b></div>" +
+          '<div class="sumcell"><span>총 세트</span><b>' +
+          (day ? day.sets : 0) +
+          "<i>세트</i></b></div>"
+        );
+      }
+
+      function refreshSummary() {
+        var box = document.getElementById("s-stats");
+        if (box) box.innerHTML = sumStatsHTML(summaryDate(), null);
+      }
+
+      function daySummaryHTML(date, cal) {
+        var note = days[date] || {};
+
+        var h =
+          '<div class="addbox summary"><div class="sumgrid" id="s-stats">' +
+          sumStatsHTML(date, cal) +
+          "</div>";
+
+        h +=
+          '<div class="sumrow"><label for="s-min">운동 시간</label>' +
+          '<div class="fld"><input type="number" id="s-min" inputmode="numeric" min="0" max="1440" ' +
+          'placeholder="분" value="' +
+          (note.min || "") +
+          '"><span>분</span></div></div>';
+
+        h +=
+          '<textarea id="s-memo" class="memofld" maxlength="500" rows="3" ' +
+          'aria-label="오늘 메모" placeholder="오늘 운동은 어땠나요? 간단히 적어두면 다음에 도움이 돼.">' +
+          Gym.esc(note.memo || "") +
+          "</textarea></div>";
         return h;
       }
 
@@ -1706,8 +1807,9 @@
         if (key === state.calDay) cls += " sel";
         if (day) cls += " has lv" + volumeLevel(day.volume, monthMax);
 
-        if (!day) {
-          return '<div class="' + cls + '">' + num + "</div>";
+        /* 앞날은 기록할 수 없으니 고를 수도 없게 둔다. */
+        if (Gym.dayDiff(key, today()) < 0) {
+          return '<div class="' + cls + ' future">' + num + "</div>";
         }
         return (
           '<button class="' +
@@ -1717,10 +1819,11 @@
           '" aria-label="' +
           Gym.esc(Gym.shortDate(key)) +
           " " +
-          day.count +
-          '종목">' +
+          (day ? day.count + "종목" : "기록 없음") +
+          '">' +
           num +
-          "<i></i></button>"
+          (day ? "<i></i>" : "") +
+          "</button>"
         );
       }
 
@@ -1729,28 +1832,27 @@
           return '<div class="empty">날짜를 누르면 그날 한 운동이 나와.</div>';
         }
         var day = cal[state.calDay];
-        if (!day) {
-          return (
-            '<div class="empty">' +
-            Gym.esc(Gym.shortDate(state.calDay)) +
-            " 에는 기록이 없어.</div>"
-          );
-        }
 
-        var h = '<div class="calday">' +
-          '<div class="ptools" style="margin:0 0 10px">' +
-          '<button class="btn" data-jump="' +
-          Gym.esc(state.calDay) +
-          '">이 날짜에 기록하기</button></div>' +
-          '<div class="caldayhead"><h3>' +
+        var h =
+          '<div class="calday"><div class="caldayhead"><h3>' +
           Gym.esc(Gym.shortDate(state.calDay)) +
-          "</h3><span>" +
-          day.count +
-          "종목 · " +
-          day.sets +
-          "세트" +
-          (day.volume ? " · 볼륨 " + Gym.formatNumber(day.volume) + "kg" : "") +
+          "(" +
+          Gym.esc(Gym.weekday(state.calDay)) +
+          ")</h3><span>" +
+          (day ? day.count + "종목 · " + day.sets + "세트" : "기록 없음") +
           "</span></div>";
+
+        h += daySummaryHTML(state.calDay, cal);
+
+        h +=
+          '<div class="ptools" style="margin:10px 0 14px">' +
+          '<button class="btn primary" data-jump="' +
+          Gym.esc(state.calDay) +
+          '">' +
+          (day ? "이 날짜에 기록하기" : "이 날짜에 기록 시작") +
+          "</button></div>";
+
+        if (!day) return h + "</div>";
 
         var ordered = day.exercises.slice().sort(function (a, b) {
           return b.volume - a.volume;
@@ -2237,6 +2339,7 @@
             exportedAt: new Date().toISOString(),
             logs: logs,
             custom: custom,
+            days: days,
           };
           var blob = new Blob([JSON.stringify(payload, null, 2)], {
             type: "application/json",
@@ -2284,6 +2387,7 @@
 
           var inLogs = Gym.sanitizeLogs(parsed.logs);
           var inCustom = Gym.sanitizeCustom(parsed.custom);
+          var inDays = Gym.sanitizeDays(parsed.days);
           var nLogs = Object.keys(inLogs).length;
           var nCustom = Object.keys(inCustom).length;
           if (!nLogs && !nCustom) {
@@ -2293,8 +2397,10 @@
 
           logs = Gym.mergeLogs(logs, inLogs);
           custom = Gym.mergeCustom(custom, inCustom);
+          days = Gym.mergeDays(days, inDays);
           var okLogs = saveLogs(),
             okCustom = saveCustom();
+          saveDays();
           render();
           if (okLogs && okCustom)
             notify("종목 " + nLogs + "개의 기록을 합쳤어.", "good");
@@ -2309,10 +2415,12 @@
           return;
         logs = {};
         custom = {};
+        days = {};
         state.open = {};
         state.chartEx = null;
         saveLogs();
         saveCustom();
+        saveDays();
         render();
         notify("전체 삭제했어.", "good");
       }
@@ -2492,6 +2600,7 @@
               return s.done;
             }),
           );
+        refreshSummary();
         if (next && ex.rest)
           Timer.start(ex.rest, ex.name + " · " + (i + 1) + "세트 완료");
       }
@@ -2721,6 +2830,16 @@
       });
 
       document.addEventListener("input", function (ev) {
+        if (ev.target.id === "s-memo") {
+          /* 메모는 다시 그리지 않는다 — 한 글자 칠 때마다 포커스가 날아간다 */
+          var rec = summaryDate();
+          if (!days[rec]) days[rec] = {};
+          var memo = ev.target.value.slice(0, 500);
+          if (memo.trim()) days[rec].memo = memo;
+          else delete days[rec].memo;
+          saveDays();
+          return;
+        }
         if (ev.target.id !== "a-name") return;
         state.q = ev.target.value;
         state.pick = null;
@@ -2730,6 +2849,16 @@
       document.addEventListener("change", function (ev) {
         var el = ev.target;
 
+        if (el.id === "s-min") {
+          var mins = parseInt(el.value, 10);
+          var rec = summaryDate();
+          if (!days[rec]) days[rec] = {};
+          if (isFinite(mins) && mins > 0) days[rec].min = Math.min(1440, mins);
+          else delete days[rec].min;
+          saveDays();
+          render();
+          return;
+        }
         if (el.id === "logdate") {
           /* 거부되면 화면과 실제 기록 날짜가 어긋나니 입력창을 되돌린다. */
           if (!setLogDate(el.value)) el.value = recordDate();
@@ -2775,6 +2904,7 @@
           }
         }
         saveLogs();
+        refreshSummary();
       });
 
       render();

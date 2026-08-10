@@ -176,6 +176,61 @@
     return shortDate(e.date) + ' · ' + (same ? (w == null ? '' : w + 'kg × ') : '') + reps + (same ? '' : '회');
   }
 
+  /* ---------- 하루 단위 메모 · 운동 시간 ---------- */
+
+  var MAX_MEMO = 500;
+  var MAX_MINUTES = 1440;
+
+  function formatDuration(min) {
+    var m = parseInt(min, 10);
+    if (!isFinite(m) || m <= 0) return null;
+    if (m < 60) return m + '분';
+    var h = Math.floor(m / 60), r = m % 60;
+    return r ? h + '시간 ' + r + '분' : h + '시간';
+  }
+
+  function isEmptyDay(d) {
+    if (!d) return true;
+    var hasMin = d.min != null && d.min > 0;
+    var hasMemo = typeof d.memo === 'string' && d.memo.trim() !== '';
+    return !hasMin && !hasMemo;
+  }
+
+  function sanitizeDays(raw) {
+    var out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    Object.keys(raw).forEach(function (k) {
+      if (!isDateKey(k)) return;
+      var d = raw[k];
+      if (!d || typeof d !== 'object') return;
+      var item = {};
+      var m = parseInt(d.min, 10);
+      if (isFinite(m) && m > 0) item.min = Math.min(MAX_MINUTES, m);
+      if (typeof d.memo === 'string') {
+        var memo = d.memo.slice(0, MAX_MEMO).trim();
+        if (memo) item.memo = memo;
+      }
+      if (!isEmptyDay(item)) out[k] = item;
+    });
+    return out;
+  }
+
+  /* 같은 날짜는 들여온 쪽이 이긴다. 새 객체를 돌려준다. */
+  function mergeDays(base, incoming) {
+    var out = {};
+    Object.keys(base || {}).forEach(function (k) { out[k] = base[k]; });
+    Object.keys(incoming || {}).forEach(function (k) { out[k] = incoming[k]; });
+    return out;
+  }
+
+  function pruneDays(days) {
+    var out = {};
+    Object.keys(days || {}).forEach(function (k) {
+      if (!isEmptyDay(days[k])) out[k] = days[k];
+    });
+    return out;
+  }
+
   /* ---------- 백업 검증 · 병합 ---------- */
 
   function num(v, max) {
@@ -505,6 +560,11 @@
     sanitizeCustom: sanitizeCustom,
     mergeLogs: mergeLogs,
     mergeCustom: mergeCustom,
+    formatDuration: formatDuration,
+    isEmptyDay: isEmptyDay,
+    sanitizeDays: sanitizeDays,
+    mergeDays: mergeDays,
+    pruneDays: pruneDays,
     chosung: chosung,
     isChosungQuery: isChosungQuery,
     searchExercises: searchExercises,
