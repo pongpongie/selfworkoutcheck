@@ -303,6 +303,77 @@
     return out;
   }
 
+  var MAX_LIBRARY = 500;
+  var MAX_ROUTINES = 30;
+
+  /* 사용자가 직접 만든 종목. 카탈로그와 같은 모양이라 검색에 그대로 섞인다. */
+  function sanitizeLibrary(raw) {
+    var out = [];
+    if (!Array.isArray(raw)) return out;
+    var seen = {};
+    raw.slice(0, MAX_LIBRARY).forEach(function (ex) {
+      if (!ex || typeof ex.id !== 'string' || !ex.id) return;
+      var name = str(ex.name, MAX_NAME, null);
+      if (!name) return;
+      var id = ex.id.slice(0, MAX_NAME);
+      if (seen[id]) return;
+      seen[id] = 1;
+      var item = {
+        id: id,
+        name: name,
+        load: num(ex.load, MAX_LOAD) || 0,
+        unit: str(ex.unit, MAX_UNIT, 'kg'),
+        sets: Math.min(MAX_SETS, Math.max(1, parseInt(ex.sets, 10) || 3)),
+        reps: str(ex.reps, MAX_REPS, '10-12회'),
+        rest: Math.min(MAX_REST, Math.max(0, parseInt(ex.rest, 10) || 60))
+      };
+      var cat = str(ex.cat, MAX_UNIT, null);
+      if (cat) item.cat = cat;
+      if (ex.plates) item.plates = true;
+      out.push(item);
+    });
+    return out;
+  }
+
+  function mergeLibrary(base, incoming) {
+    var out = (base || []).slice();
+    var index = {};
+    out.forEach(function (e, i) { index[e.id] = i; });
+    (incoming || []).forEach(function (e) {
+      if (index[e.id] != null) out[index[e.id]] = e;
+      else { index[e.id] = out.length; out.push(e); }
+    });
+    return out.slice(0, MAX_LIBRARY);
+  }
+
+  /* 사용자가 만든 루틴(요일). 종목은 custom[routineId] 에 따로 쌓인다. */
+  function sanitizeRoutines(raw) {
+    var out = [];
+    if (!Array.isArray(raw)) return out;
+    var seen = {};
+    raw.slice(0, MAX_ROUTINES).forEach(function (r) {
+      if (!r || typeof r.id !== 'string' || !r.id) return;
+      var name = str(r.name, MAX_NAME, null);
+      if (!name) return;
+      var id = r.id.slice(0, MAX_NAME);
+      if (seen[id]) return;
+      seen[id] = 1;
+      out.push({ id: id, name: name });
+    });
+    return out;
+  }
+
+  function mergeRoutines(base, incoming) {
+    var out = (base || []).slice();
+    var index = {};
+    out.forEach(function (r, i) { index[r.id] = i; });
+    (incoming || []).forEach(function (r) {
+      if (index[r.id] != null) out[index[r.id]] = r;
+      else { index[r.id] = out.length; out.push(r); }
+    });
+    return out.slice(0, MAX_ROUTINES);
+  }
+
   /* 같은 (종목, 날짜) 는 들여온 쪽이 이긴다. 새 객체를 돌려준다. */
   function mergeLogs(base, incoming) {
     var out = {};
@@ -603,6 +674,10 @@
     formatSetLine: formatSetLine,
     formatNumber: formatNumber,
     formatBytes: formatBytes,
+    sanitizeLibrary: sanitizeLibrary,
+    mergeLibrary: mergeLibrary,
+    sanitizeRoutines: sanitizeRoutines,
+    mergeRoutines: mergeRoutines,
     seriesByName: seriesByName,
     chartSVG: chartSVG
   };

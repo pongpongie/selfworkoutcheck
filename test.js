@@ -279,6 +279,50 @@ describe('mergeCustom', function(){
   eq('원본 base 는 그대로', base.d1[0].name, '옛이름');
 });
 
+/* ---------- 내 종목 · 내 루틴 ---------- */
+describe('sanitizeLibrary', function(){
+  eq('배열이 아니면 빈 배열', Gym.sanitizeLibrary(null), []);
+  eq('id 가 없으면 버린다', Gym.sanitizeLibrary([{ name: 'x' }]), []);
+  eq('이름이 비면 버린다', Gym.sanitizeLibrary([{ id: 'a', name: '  ' }]), []);
+
+  var one = Gym.sanitizeLibrary([{ id: 'my-1', name: '케이블 로우', cat: 'back' }])[0];
+  eq('부위가 남는다', one.cat, 'back');
+  eq('빠진 값은 기본값', [one.load, one.unit, one.sets, one.reps, one.rest],
+     [0, 'kg', 3, '10-12회', 60]);
+
+  var dup = Gym.sanitizeLibrary([{ id: 'a', name: '첫번째' }, { id: 'a', name: '중복' }]);
+  eq('id 중복은 하나만', dup.length, 1);
+  eq('먼저 온 게 남는다', dup[0].name, '첫번째');
+
+  var clamped = Gym.sanitizeLibrary([{ id: 'a', name: 'x', sets: 999, rest: 99999, load: 5000 }])[0];
+  eq('세트 상한', clamped.sets, 20);
+  eq('휴식 상한', clamped.rest, 900);
+  eq('범위 밖 중량은 0', clamped.load, 0);
+});
+
+describe('mergeLibrary', function(){
+  var base = [{ id: 'a', name: '옛이름' }];
+  var inc  = [{ id: 'a', name: '새이름' }, { id: 'b', name: '추가' }];
+  var out = Gym.mergeLibrary(base, inc);
+  eq('같은 id 는 들여온 쪽', out[0].name, '새이름');
+  eq('새 종목은 추가', out.length, 2);
+  eq('원본은 그대로', base[0].name, '옛이름');
+  eq('빈 입력도 안전', Gym.mergeLibrary(null, null), []);
+});
+
+describe('sanitizeRoutines / mergeRoutines', function(){
+  eq('배열이 아니면 빈 배열', Gym.sanitizeRoutines('x'), []);
+  eq('id·이름이 있어야 남는다', Gym.sanitizeRoutines([{ id: 'r1' }, { name: '이름만' }]), []);
+  eq('정상 값', Gym.sanitizeRoutines([{ id: 'r1', name: '팔 집중' }]), [{ id: 'r1', name: '팔 집중' }]);
+  eq('군더더기 필드는 버린다',
+     Gym.sanitizeRoutines([{ id: 'r1', name: 'x', evil: '<script>' }])[0], { id: 'r1', name: 'x' });
+  eq('id 중복은 하나만', Gym.sanitizeRoutines([{ id: 'r1', name: 'a' }, { id: 'r1', name: 'b' }]).length, 1);
+
+  var out = Gym.mergeRoutines([{ id: 'r1', name: '옛' }], [{ id: 'r1', name: '새' }, { id: 'r2', name: '둘' }]);
+  eq('같은 id 는 들여온 쪽', out[0].name, '새');
+  eq('새 루틴은 추가', out.length, 2);
+});
+
 /* ---------- 이름으로 묶은 추이 ---------- */
 describe('seriesByName', function(){
   var names = { 'd1-bench': '벤치프레스', 'lib-bench': '벤치프레스', 'd1-row': '바벨로우' };

@@ -98,6 +98,7 @@
         cursor: pointer; white-space: nowrap;
       }
       .chip.on { background: var(--text); border-color: var(--text); color: var(--bg); }
+      .chip-add { border-style: dashed; color: var(--accent); }
       .chip:focus-visible, .iconbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
       /* ---------- bottom nav ---------- */
@@ -534,7 +535,9 @@
       /* ============ constants ============ */
       var K_LOG = "gym.logs.v1",
         K_CUSTOM = "gym.custom.v1",
-        K_DAYS = "gym.days.v1";
+        K_DAYS = "gym.days.v1",
+        K_LIB = "gym.mylib.v1",
+        K_ROUTINES = "gym.routines.v1";
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
@@ -587,6 +590,8 @@
       var logs = Store.get(K_LOG, {}); // { exId: [ {date, sets:[{w,r,done}]} ] }
       var custom = Store.get(K_CUSTOM, {}); // { dayId: [ exercise ] }
       var days = Store.get(K_DAYS, {}); // { date: { min, memo } }
+      var myLib = Store.get(K_LIB, []); // 내가 만든 종목 — 검색에 계속 나온다
+      var routines = Store.get(K_ROUTINES, []); // 내가 만든 루틴(요일)
 
       function today() {
         return Gym.todayKey();
@@ -617,6 +622,18 @@
       function saveCustom() {
         if (Store.set(K_CUSTOM, custom)) return true;
         notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        return false;
+      }
+
+      function saveMyLib() {
+        if (Store.set(K_LIB, myLib)) return true;
+        notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        return false;
+      }
+
+      function saveRoutines() {
+        if (Store.set(K_ROUTINES, routines)) return true;
+        notify("저장 공간이 부족해서 루틴이 저장되지 않았어.");
         return false;
       }
 
@@ -975,6 +992,26 @@
         },
       ];
 
+      /* 내가 만든 루틴은 엑스트라와 같은 자유 요일로 취급한다. */
+      function routineDays() {
+        return routines.map(function (r) {
+          return {
+            id: r.id,
+            num: "MY",
+            name: r.name,
+            tag: "내 루틴",
+            accent: "#5856d6",
+            freeform: true,
+            custom: true,
+            main: [],
+          };
+        });
+      }
+
+      function allDays() {
+        return DAYS.concat(routineDays());
+      }
+
       /* ============ log write path ============ */
       /* 읽기는 Gym.entryFor / Gym.viewSets 로. 여기는 실제로 값을 쓸 때만 부른다. */
       function ensureEntry(exId, date, nSets) {
@@ -1197,7 +1234,7 @@
 
       function allExercises() {
         var out = [];
-        DAYS.forEach(function (day) {
+        allDays().forEach(function (day) {
           WARM.concat(day.main, CIRCUIT).forEach(function (e) {
             out.push(e);
           });
@@ -1234,7 +1271,7 @@
       function exerciseName(id) {
         var inRoutine = findExercise(id);
         if (inRoutine) return inRoutine.name;
-        var inCatalog = GymExercises.BY_ID[id];
+        var inCatalog = GymExercises.BY_ID[id] || libById(id);
         if (inCatalog) return inCatalog.name;
         return id;
       }
@@ -1249,7 +1286,7 @@
       })();
 
       function exerciseCategory(id) {
-        var inCatalog = GymExercises.BY_ID[id];
+        var inCatalog = GymExercises.BY_ID[id] || libById(id);
         if (inCatalog) return inCatalog.cat;
         var ex = findExercise(id);
         if (!ex) return null;
@@ -1272,7 +1309,7 @@
           return;
         }
         var h = "";
-        DAYS.forEach(function (d) {
+        allDays().forEach(function (d) {
           h +=
             '<button class="chip' +
             (state.day === d.id ? " on" : "") +
@@ -1286,6 +1323,8 @@
             ) +
             "</button>";
         });
+        h +=
+          '<button class="chip chip-add" id="chip-new" aria-label="내 루틴 만들기">＋ 루틴</button>';
         box.innerHTML = h;
       }
 
@@ -1496,10 +1535,20 @@
         return h;
       }
 
+      /* 카탈로그 + 내가 만든 종목. 한 번 만들면 계속 검색에 나온다. */
+      function searchPool() {
+        return GymExercises.ALL.concat(myLib);
+      }
+
+      function libById(id) {
+        for (var i = 0; i < myLib.length; i++) if (myLib[i].id === id) return myLib[i];
+        return null;
+      }
+
       function suggestionsHTML() {
         if (state.pick) return "";
         var hits = Gym.searchExercises(
-          GymExercises.ALL,
+          searchPool(),
           state.q,
           state.cat,
           SUGGEST_LIMIT,
@@ -1507,7 +1556,12 @@
         if (!hits.length) {
           return (
             '<li class="sugnone">찾는 종목이 없어.<br>' +
-            "그대로 <b>추가하기</b>를 누르면 직접 입력한 이름으로 등록돼.</li>"
+            (state.cat
+              ? "그대로 <b>추가하기</b>를 누르면 <b>" +
+                Gym.esc(GymExercises.categoryName(state.cat)) +
+                "</b> 종목으로 등록되고 다음부터 검색에 나와."
+              : "<b>부위를 먼저 고르면</b> 새 종목으로 등록할 수 있어.") +
+            "</li>"
           );
         }
         return hits
@@ -1570,6 +1624,61 @@
             })
             .join("") +
           "</div>"
+        );
+      }
+
+      function newRoutine() {
+        var name = (window.prompt("루틴 이름을 지어줘 (예: 팔 집중, 홈트)") || "").trim();
+        if (!name) return;
+        var r = { id: "r-" + Date.now(), name: name.slice(0, MAX_NAME) };
+        routines = routines.concat([r]);
+        if (!saveRoutines()) return;
+        state.day = r.id;
+        state.section = "workout";
+        render();
+        notify(r.name + " 루틴을 만들었어.", "good");
+      }
+
+      function renameRoutine(id) {
+        var cur = routines.filter(function (r) { return r.id === id; })[0];
+        if (!cur) return;
+        var name = (window.prompt("새 이름", cur.name) || "").trim();
+        if (!name) return;
+        routines = routines.map(function (r) {
+          return r.id === id ? { id: r.id, name: name.slice(0, MAX_NAME) } : r;
+        });
+        saveRoutines();
+        render();
+      }
+
+      function deleteRoutine(id) {
+        var cur = routines.filter(function (r) { return r.id === id; })[0];
+        if (!cur) return;
+        if (
+          !window.confirm(
+            cur.name + " 루틴을 지울까?\n담긴 종목 구성만 사라지고 운동 기록은 남아.",
+          )
+        )
+          return;
+        routines = routines.filter(function (r) { return r.id !== id; });
+        delete custom[id];
+        saveRoutines();
+        saveCustom();
+        state.day = DAYS[0].id;
+        render();
+        notify(cur.name + " 루틴을 지웠어.", "good");
+      }
+
+      function routineToolsHTML(day) {
+        if (!day.custom) return "";
+        return (
+          '<div class="ptools" style="margin-top:12px">' +
+          '<button class="btn" data-rname="' +
+          Gym.esc(day.id) +
+          '">이름 바꾸기</button>' +
+          '<button class="btn warnbtn" data-rdel="' +
+          Gym.esc(day.id) +
+          '">루틴 삭제</button></div>'
         );
       }
 
@@ -1663,7 +1772,9 @@
           Gym.esc(day.name) +
           "</h2><p>" +
           Gym.esc(day.tag) +
-          "</p></div>";
+          "</p>" +
+          routineToolsHTML(day) +
+          "</div>";
 
         h += dateBarHTML();
 
@@ -2005,7 +2116,7 @@
           v.innerHTML = renderStats();
         } else {
           var day =
-            DAYS.filter(function (d) {
+            allDays().filter(function (d) {
               return d.id === state.day;
             })[0] || DAYS[0];
           v.innerHTML = renderDay(day);
@@ -2028,6 +2139,8 @@
             logs: logs,
             custom: custom,
             days: days,
+            mylib: myLib,
+            routines: routines,
           };
           var blob = new Blob([JSON.stringify(payload, null, 2)], {
             type: "application/json",
@@ -2076,6 +2189,8 @@
           var inLogs = Gym.sanitizeLogs(parsed.logs);
           var inCustom = Gym.sanitizeCustom(parsed.custom);
           var inDays = Gym.sanitizeDays(parsed.days);
+          var inLib = Gym.sanitizeLibrary(parsed.mylib);
+          var inRoutines = Gym.sanitizeRoutines(parsed.routines);
           var nLogs = Object.keys(inLogs).length;
           var nCustom = Object.keys(inCustom).length;
           if (!nLogs && !nCustom) {
@@ -2086,6 +2201,10 @@
           logs = Gym.mergeLogs(logs, inLogs);
           custom = Gym.mergeCustom(custom, inCustom);
           days = Gym.mergeDays(days, inDays);
+          myLib = Gym.mergeLibrary(myLib, inLib);
+          routines = Gym.mergeRoutines(routines, inRoutines);
+          saveMyLib();
+          saveRoutines();
           var okLogs = saveLogs(),
             okCustom = saveCustom();
           saveDays();
@@ -2104,20 +2223,25 @@
         logs = {};
         custom = {};
         days = {};
+        myLib = [];
+        routines = [];
         state.open = {};
         state.chartEx = null;
         saveLogs();
         saveCustom();
         saveDays();
+        saveMyLib();
+        saveRoutines();
+        state.day = DAYS[0].id;
         render();
         notify("전체 삭제했어.", "good");
       }
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-daytab],[data-addset],[data-delset],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-daytab],[data-addset],[data-delset],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
-        "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,[data-grp]," +
+        "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
         "#s-update,#s-purge,#nav-settings,[data-theme-set],#alert";
 
       /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
@@ -2162,7 +2286,7 @@
       }
 
       function pickExercise(id) {
-        var e = GymExercises.BY_ID[id];
+        var e = GymExercises.BY_ID[id] || libById(id);
         if (!e) return;
         state.pick = e;
         state.q = e.name;
@@ -2188,7 +2312,7 @@
       /* 같은 날에 같은 이름이 두 번 뜨면 어느 카드에 적었는지 헷갈린다.
          자유 요일은 워밍업·서킷을 띄우지 않으니 그 이름들은 막지 않는다. */
       function dayHasExercise(dayId, name, id) {
-        var day = DAYS.filter(function (d) {
+        var day = allDays().filter(function (d) {
           return d.id === dayId;
         })[0];
         var list = (day ? day.main : []).concat(custom[dayId] || []);
@@ -2217,9 +2341,16 @@
         for (var ai = 0; ai < all.length; ai++) {
           if (all[ai].name === name) { existing = all[ai].id; break; }
         }
-        var id = existing || (pick ? pick.id : "x-" + Date.now());
+        var id = existing || (pick ? pick.id : "my-" + Date.now());
         if (dayHasExercise(dayId, name, id)) {
           notify(name + " 은(는) 이 날에 이미 있어.");
+          return;
+        }
+        /* 카탈로그에 없는 이름이면 부위를 받아 내 목록에 넣는다.
+           안 그러면 다음에 또 검색해도 안 나와서 매번 다시 쳐야 한다. */
+        var isNew = !pick && !existing && !libById(id);
+        if (isNew && !state.cat) {
+          notify("새 종목은 부위를 먼저 골라줘. 위의 부위 칩에서 고르면 돼.");
           return;
         }
 
@@ -2252,6 +2383,23 @@
         if (pick) {
           entry.cat = pick.cat;
           if (pick.plates) entry.plates = true;
+        }
+
+        if (isNew) {
+          entry.cat = state.cat;
+          myLib = myLib.concat([
+            {
+              id: id,
+              name: name,
+              cat: state.cat,
+              load: entry.load,
+              unit: entry.unit,
+              sets: entry.sets,
+              reps: entry.reps,
+              rest: entry.rest,
+            },
+          ]);
+          saveMyLib();
         }
 
         custom[dayId] = (custom[dayId] || []).concat([entry]);
@@ -2380,6 +2528,18 @@
           state.section = state.section === "settings" ? "workout" : "settings";
           window.scrollTo(0, 0);
           render();
+          return;
+        }
+        if (t.id === "chip-new") {
+          newRoutine();
+          return;
+        }
+        if (t.dataset.rname) {
+          renameRoutine(t.dataset.rname);
+          return;
+        }
+        if (t.dataset.rdel) {
+          deleteRoutine(t.dataset.rdel);
           return;
         }
         if (t.id === "nav-tips") {
