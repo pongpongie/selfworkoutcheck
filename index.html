@@ -439,6 +439,11 @@
       <div class="appbar-in">
         <div class="brandmark">심트<small>Simple Training</small></div>
         <span class="today" id="today"></span>
+        <button class="iconbtn" id="nav-tips" aria-label="훈련 팁" title="훈련 팁">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.5.4.8.9.9 1.5l.1.7h5.2l.1-.7c.1-.6.4-1.1.9-1.5A6 6 0 0 0 12 3z"></path>
+          </svg>
+        </button>
         <button class="iconbtn" id="nav-settings" aria-label="설정" title="설정">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <circle cx="12" cy="12" r="3"></circle>
@@ -1140,6 +1145,8 @@
         q: "",
         cat: null,
         pick: null,
+        /* 종목을 추가할 그룹 — 웜업인지 메인인지 */
+        grp: "main",
         theme: "system",
         /* 기록을 남길 날짜. 기본은 오늘이지만 지난 날짜로 돌려 적을 수 있다. */
         logDate: Gym.todayKey(),
@@ -1176,6 +1183,12 @@
         for (var i = 0; i < all.length; i++)
           if (all[i].id === id) return all[i];
         return null;
+      }
+
+      /* 세트 수는 사용자가 바꿨으면 그 값을, 아니면 루틴 기본값을 쓴다. */
+      function setCountFor(ex, date) {
+        var e = Gym.entryFor(logs, ex.id, date);
+        return e && e.sets.length ? e.sets.length : ex.sets;
       }
 
       /* 캘린더는 지금 루틴에 없는 종목(예전에 지운 것, 들여온 것)도 보여줘야 한다.
@@ -1225,7 +1238,7 @@
           h +=
             '<button class="chip' +
             (state.day === d.id ? " on" : "") +
-            '" data-day="' +
+            '" data-daytab="' +
             Gym.esc(d.id) +
             '">' +
             Gym.esc(
@@ -1249,12 +1262,16 @@
         document
           .getElementById("nav-settings")
           .classList.toggle("on", state.section === "settings");
+        document
+          .getElementById("nav-tips")
+          .classList.toggle("on", state.section === "tips");
       }
 
       function exCard(ex, day, isCustom) {
         var date = recordDate();
         var stored = Gym.entryFor(logs, ex.id, date);
-        var sets = Gym.viewSets(stored, ex.sets);
+        var count = setCountFor(ex, date);
+        var sets = Gym.viewSets(stored, count);
         var allDone =
           sets.length > 0 &&
           sets.every(function (s) {
@@ -1289,7 +1306,7 @@
           "</div>";
         h +=
           '<div class="mt">' +
-          ex.sets +
+          count +
           "세트 × " +
           Gym.esc(ex.reps) +
           "</div>";
@@ -1305,7 +1322,7 @@
         h += "</div>";
 
         h += '<div class="panel">';
-        for (var i = 0; i < ex.sets; i++) {
+        for (var i = 0; i < count; i++) {
           var s = sets[i];
           var no = i + 1;
           h +=
@@ -1354,6 +1371,15 @@
             "</div>";
         }
         h += '<div class="ptools">';
+        h +=
+          '<button class="btn" data-addset="' +
+          Gym.esc(ex.id) +
+          '">＋ 세트</button>';
+        if (count > 1)
+          h +=
+            '<button class="btn" data-delset="' +
+            Gym.esc(ex.id) +
+            '">− 세트</button>';
         h +=
           '<button class="btn" data-fill="' +
           Gym.esc(ex.id) +
@@ -1483,10 +1509,38 @@
         );
       }
 
+      function grpSegHTML() {
+        var opts = [
+          { id: "warm", label: "웜업" },
+          { id: "main", label: "메인" },
+        ];
+        return (
+          '<div class="seg" role="group" aria-label="어느 그룹에 넣을지">' +
+          opts
+            .map(function (o) {
+              return (
+                '<button class="segbtn' +
+                (state.grp === o.id ? " on" : "") +
+                '" data-grp="' +
+                o.id +
+                '" aria-pressed="' +
+                (state.grp === o.id ? "true" : "false") +
+                '">' +
+                o.label +
+                "</button>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
       function addBoxHTML(day) {
         var p = state.pick;
         return (
           '<div class="addbox"><h4>이 날에 종목 추가</h4>' +
+          grpSegHTML() +
+          '<div style="height:10px"></div>' +
           catChipsHTML() +
           '<input class="searchfld" id="a-name" maxlength="' +
           MAX_NAME +
@@ -1575,15 +1629,26 @@
 
         h += dateBarHTML();
 
-        if (!day.freeform) {
+        var added = custom[day.id] || [];
+        var addedWarm = added.filter(function (e) {
+          return e.grp === "warm";
+        });
+        var addedMain = added.filter(function (e) {
+          return e.grp !== "warm";
+        });
+        var warmBase = day.freeform ? [] : WARM;
+
+        if (warmBase.length || addedWarm.length) {
           h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
-          WARM.forEach(function (ex) {
+          warmBase.forEach(function (ex) {
             h += exCard(ex, day, false);
+          });
+          addedWarm.forEach(function (ex) {
+            h += exCard(ex, day, true);
           });
           h += "</div>";
         }
 
-        var added = custom[day.id] || [];
         h +=
           '<div class="grp main"><div class="grp-label">' +
           (day.freeform ? "오늘 한 것" : "MAIN") +
@@ -1591,10 +1656,10 @@
         day.main.forEach(function (ex) {
           h += exCard(ex, day, false);
         });
-        added.forEach(function (ex) {
+        addedMain.forEach(function (ex) {
           h += exCard(ex, day, true);
         });
-        if (!day.main.length && !added.length) {
+        if (!day.main.length && !addedMain.length) {
           h +=
             '<div class="empty">아직 넣은 종목이 없어.<br>아래에서 검색해서 추가해.</div>';
         }
@@ -1611,15 +1676,7 @@
 
         h += addBoxHTML(day);
 
-        h +=
-          '<div class="foot"><h3>중량 올리는 기준</h3>' +
-          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
-          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
-          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
-          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
-          "</div>";
+
 
         if (!Store.ok) {
           h +=
@@ -1895,6 +1952,37 @@
         );
       }
 
+      /* ---------- 팁 ---------- */
+      function renderTips() {
+        var h =
+          '<div class="dayhead"><div class="num">TIPS</div><h2>훈련 팁</h2>' +
+          "<p>헷갈릴 때 열어보는 기준들</p></div>";
+
+        h += '<div class="sechead">중량 올리는 기준</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
+          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
+          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
+          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">세트 · 휴식</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>큰 종목은 2-3분, 작은 종목은 60초.</b> 휴식이 짧으면 반복수가 떨어져 총볼륨이 준다.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>마지막 세트는 2개 남기고 멈춘다.</b> 매 세트 실패까지 가면 다음 날 회복이 안 된다.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>세트가 모자라면 ＋ 세트로 늘린다.</b> 직전 세트의 중량·반복수를 그대로 복사해준다.</div></div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">기록 습관</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>세트 끝나자마자 적는다.</b> 나중에 몰아 적으면 반드시 틀린다.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>못 적었으면 날짜를 되돌려 적는다.</b> 운동 화면 위쪽 날짜 바에서 옮길 수 있다.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>가끔 설정에서 내보내기.</b> 기록은 이 브라우저에만 있다.</div></div>' +
+          "</div>";
+        return h;
+      }
+
       /* ---------- 설정 ---------- */
       function logStats() {
         var days = {},
@@ -2116,7 +2204,9 @@
         renderChips();
         renderNav();
         var v = document.getElementById("view");
-        if (state.section === "settings") {
+        if (state.section === "tips") {
+          v.innerHTML = renderTips();
+        } else if (state.section === "settings") {
           v.innerHTML = renderSettings();
           fillSettingsAsync();
         } else if (state.section === "records") {
@@ -2229,9 +2319,9 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-day],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-daytab],[data-addset],[data-delset],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
-        "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset," +
+        "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,[data-grp]," +
         "#s-update,#s-purge,#nav-settings,[data-theme-set],#alert";
 
       /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
@@ -2355,6 +2445,7 @@
             Math.max(0, isFinite(rest) ? rest : pick ? pick.rest : 60),
           ),
         };
+        entry.grp = state.grp === "warm" ? "warm" : "main";
         if (pick) {
           entry.cat = pick.cat;
           if (pick.plates) entry.plates = true;
@@ -2387,7 +2478,7 @@
           i = +btn.dataset.i;
         var ex = findExercise(exId);
         if (!ex) return;
-        var e = ensureEntry(exId, recordDate(), ex.sets);
+        var e = ensureEntry(exId, recordDate(), setCountFor(ex, recordDate()));
         var next = !e.sets[i].done;
         e.sets[i].done = next;
         saveLogs();
@@ -2405,6 +2496,41 @@
           Timer.start(ex.rest, ex.name + " · " + (i + 1) + "세트 완료");
       }
 
+      /* 세트를 늘리면 직전 세트의 중량·반복수를 복사한다 — 보통 같은 무게로 이어가니까. */
+      function addSet(exId) {
+        var ex = findExercise(exId);
+        if (!ex) return;
+        var date = recordDate();
+        var count = setCountFor(ex, date);
+        if (count >= MAX_SETS) {
+          notify("세트는 " + MAX_SETS + "개까지야.");
+          return;
+        }
+        var e = ensureEntry(exId, date, count);
+        var last = e.sets[e.sets.length - 1];
+        e.sets.push({
+          w: last ? last.w : null,
+          r: last ? last.r : null,
+          done: false,
+        });
+        e.n = e.sets.length;
+        saveLogs();
+        render();
+      }
+
+      function removeSet(exId) {
+        var ex = findExercise(exId);
+        if (!ex) return;
+        var date = recordDate();
+        var count = setCountFor(ex, date);
+        if (count <= 1) return;
+        var e = ensureEntry(exId, date, count);
+        e.sets.pop();
+        e.n = e.sets.length;
+        saveLogs();
+        render();
+      }
+
       function fillFromPrev(exId) {
         var prev = Gym.prevEntry(logs, exId, recordDate());
         if (!prev) {
@@ -2413,7 +2539,7 @@
         }
         var ex = findExercise(exId);
         if (!ex) return;
-        var cur = ensureEntry(exId, recordDate(), ex.sets);
+        var cur = ensureEntry(exId, recordDate(), setCountFor(ex, recordDate()));
         prev.sets.forEach(function (s, i) {
           if (cur.sets[i]) {
             cur.sets[i].w = s.w;
@@ -2439,8 +2565,8 @@
           render();
           return;
         }
-        if (t.dataset.day) {
-          state.day = t.dataset.day;
+        if (t.dataset.daytab) {
+          state.day = t.dataset.daytab;
           state.section = "workout";
           window.scrollTo(0, 0);
           render();
@@ -2448,6 +2574,12 @@
         }
         if (t.id === "nav-settings") {
           state.section = state.section === "settings" ? "workout" : "settings";
+          window.scrollTo(0, 0);
+          render();
+          return;
+        }
+        if (t.id === "nav-tips") {
+          state.section = state.section === "tips" ? "workout" : "tips";
           window.scrollTo(0, 0);
           render();
           return;
@@ -2466,6 +2598,20 @@
         }
         if (t.dataset.rest) {
           Timer.start(+t.dataset.rest, "휴식");
+          return;
+        }
+        if (t.dataset.addset) {
+          addSet(t.dataset.addset);
+          return;
+        }
+        if (t.dataset.delset) {
+          removeSet(t.dataset.delset);
+          return;
+        }
+        if (t.hasAttribute("data-grp")) {
+          state.grp = t.dataset.grp;
+          var seg = document.querySelector("[data-grp]");
+          if (seg && seg.parentNode) seg.parentNode.outerHTML = grpSegHTML();
           return;
         }
         if (t.dataset.fill) {
@@ -2611,7 +2757,7 @@
           if (!isFinite(parsed) || parsed < 0) el.value = "";
           else v = parsed;
         }
-        var e = ensureEntry(exId, recordDate(), ex.sets),
+        var e = ensureEntry(exId, recordDate(), setCountFor(ex, recordDate())),
           i = +el.dataset.i;
         if (el.dataset.w) {
           e.sets[i].w = v;

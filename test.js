@@ -139,6 +139,30 @@ describe('isEmptyEntry', function(){
   ok('null 도 빈 것', Gym.isEmptyEntry(null));
 });
 
+describe('세트 수 변경(n) 보존', function(){
+  var withN = { x: [{ date: '2026-08-11', sets: [{ w: null, r: null, done: false }], n: 1 }] };
+  check('n 이 있으면 값이 비어도 안 지운다', !Gym.isEmptyEntry(withN.x[0]));
+  eq('pruneLogs 도 남긴다', Object.keys(Gym.pruneLogs(withN).logs), ['x']);
+  ok('n 이 없으면 종전대로 지운다',
+     Gym.isEmptyEntry({ date: '2026-08-11', sets: [{ w: null, r: null, done: false }] }));
+
+  var round = Gym.sanitizeLogs({ x: [{ date: '2026-08-11', sets: [{w:null,r:null},{w:null,r:null}], n: 2 }] });
+  eq('백업 왕복에서 n 이 남는다', round.x[0].n, 2);
+  eq('n 은 실제 세트 수로 맞춘다', round.x[0].sets.length, 2);
+
+  var noN = Gym.sanitizeLogs({ x: [{ date: '2026-08-11', sets: [{w:null,r:null}] }] });
+  eq('n 없는 빈 엔트리는 여전히 버린다', Object.keys(noN), []);
+});
+
+describe('sanitizeCustom 이 grp 를 보존', function(){
+  var warm = Gym.sanitizeCustom({ d1: [{ id: 'a', name: '로테이션', grp: 'warm' }] }).d1[0];
+  eq('웜업 그룹이 남는다', warm.grp, 'warm');
+  var main = Gym.sanitizeCustom({ d1: [{ id: 'b', name: '벤치', grp: 'main' }] }).d1[0];
+  eq('메인은 필드를 안 남긴다', main.grp, undefined);
+  var bad = Gym.sanitizeCustom({ d1: [{ id: 'c', name: '이상', grp: '<script>' }] }).d1[0];
+  eq('이상한 값은 무시', bad.grp, undefined);
+});
+
 describe('pruneLogs', function(){
   var res = Gym.pruneLogs(SAMPLE);
   eq('빈 엔트리를 걷어낸다', res.logs.bench.length, 2);

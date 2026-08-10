@@ -124,6 +124,9 @@
 
   function isEmptyEntry(e) {
     if (!e || !Array.isArray(e.sets)) return true;
+    /* 세트 수를 직접 바꾼 기록은 값이 비어 있어도 지우지 않는다.
+       안 그러면 "세트 추가" 를 눌러도 저장 직후 다시 사라진다. */
+    if (e.n != null) return false;
     return !e.sets.some(function (s) {
       return s && (s.w != null || s.r != null || s.done);
     });
@@ -205,6 +208,7 @@
           };
         });
         var entry = { date: e.date, sets: sets };
+        if (e.n != null && sets.length) entry.n = sets.length;
         if (!isEmptyEntry(entry)) entries.push(entry);
       });
       if (entries.length) out[String(id)] = entries;
@@ -235,6 +239,7 @@
         /* 부위 태그와 원판 표시 여부는 백업 왕복에서 잃지 않는다. */
         var cat = str(ex.cat, MAX_UNIT, null);
         if (cat) item.cat = cat;
+        if (ex.grp === 'warm') item.grp = 'warm';
         if (ex.plates) item.plates = true;
         list.push(item);
       });
