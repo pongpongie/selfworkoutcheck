@@ -563,10 +563,44 @@
     return String(Math.round(n || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   }
 
+  /* Epley 공식. 5-12회 구간에서 쓸 만하고 그 밖에서는 오차가 커진다. */
+  function estimate1RM(w, r) {
+    if (w == null || r == null) return null;
+    var W = Number(w), R = Number(r);
+    if (!isFinite(W) || !isFinite(R) || R <= 0 || W <= 0) return null;
+    return Math.round(W * (1 + R / 30) * 10) / 10;
+  }
+
+  function setE1RM(s) {
+    return s ? estimate1RM(s.w, s.r) : null;
+  }
+
+  /* 한 세션(엔트리)을 지표 하나로 요약한다. */
+  function entryMetric(e, metric) {
+    if (!e || !Array.isArray(e.sets)) return null;
+    if (metric === 'volume') {
+      var v = 0;
+      e.sets.forEach(function (s) {
+        if (s && s.w != null && s.r != null) v += s.w * s.r;
+      });
+      return v > 0 ? v : null;
+    }
+    if (metric === 'e1rm') {
+      var best = null;
+      e.sets.forEach(function (s) {
+        var x = setE1RM(s);
+        if (x != null && (best === null || x > best)) best = x;
+      });
+      return best;
+    }
+    return topSet(e);
+  }
+
   /* 같은 운동이 서로 다른 id 로 쌓일 수 있다 — 내장 루틴 id(d1-bench)와
      카탈로그 id(lib-bench). 이름으로 묶어 하나의 추이로 만든다.
-     같은 날 두 id 에 값이 있으면 더 무거운 쪽을 그날 대표로 삼는다. */
-  function seriesByName(logs, nameOf) {
+     볼륨은 합치고, 최고중량·1RM 은 더 높은 쪽을 그날 대표로 삼는다. */
+  function seriesByName(logs, nameOf, metric) {
+    var m = metric || 'top';
     var byName = {};
     Object.keys(logs || {}).forEach(function (id) {
       var arr = logs[id];
@@ -576,9 +610,11 @@
       var byDate = byName[name] || (byName[name] = {});
       arr.forEach(function (e) {
         if (!e || !isDateKey(e.date)) return;
-        var t = topSet(e);
-        if (t == null) return;
-        if (byDate[e.date] == null || t > byDate[e.date]) byDate[e.date] = t;
+        var v = entryMetric(e, m);
+        if (v == null) return;
+        if (byDate[e.date] == null) byDate[e.date] = v;
+        else if (m === 'volume') byDate[e.date] += v;
+        else if (v > byDate[e.date]) byDate[e.date] = v;
       });
     });
     var out = {};
@@ -586,6 +622,20 @@
       var dates = Object.keys(byName[name]).sort();
       if (!dates.length) return;
       out[name] = dates.map(function (d) { return { d: d, v: byName[name][d] }; });
+    });
+    return out;
+  }
+
+  /* 종목별 개인 기록 — 역대 최고 중량과 그 날짜. */
+  function prByName(logs, nameOf) {
+    var series = seriesByName(logs, nameOf, 'top');
+    var out = {};
+    Object.keys(series).forEach(function (name) {
+      var best = null;
+      series[name].forEach(function (p) {
+        if (best === null || p.v > best.w) best = { w: p.v, date: p.d };
+      });
+      if (best) out[name] = best;
     });
     return out;
   }
@@ -678,7 +728,10 @@
     mergeLibrary: mergeLibrary,
     sanitizeRoutines: sanitizeRoutines,
     mergeRoutines: mergeRoutines,
+    estimate1RM: estimate1RM,
+    entryMetric: entryMetric,
     seriesByName: seriesByName,
+    prByName: prByName,
     chartSVG: chartSVG
   };
 });

@@ -182,6 +182,15 @@
         color: var(--text-2); background: var(--surface-2);
         padding: 6px 9px; border-radius: var(--radius-button);
       }
+      .prbadge {
+        grid-column: 1/-1; margin-top: var(--gap-sm);
+        display: inline-flex; align-items: baseline; gap: 4px; align-self: start;
+        width: fit-content; padding: 3px 9px; border-radius: var(--radius-pill);
+        background: var(--accent-soft); color: var(--accent);
+        font-family: var(--font-mono); font-size: var(--t-small); font-weight: var(--w-medium);
+      }
+      .prbadge span { color: var(--text-3); font-weight: var(--w-regular); }
+      .last b { font-weight: var(--w-medium); color: var(--text); margin-left: 6px; }
       .card.done .nm { text-decoration: line-through; text-decoration-thickness: 2px; }
       .card.done { opacity: 0.5; }
 
@@ -537,7 +546,9 @@
         K_CUSTOM = "gym.custom.v1",
         K_DAYS = "gym.days.v1",
         K_LIB = "gym.mylib.v1",
-        K_ROUTINES = "gym.routines.v1";
+        K_ROUTINES = "gym.routines.v1",
+        K_PREFS = "gym.prefs.v1",
+        K_ORDER = "gym.order.v1";
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
@@ -592,6 +603,8 @@
       var days = Store.get(K_DAYS, {}); // { date: { min, memo } }
       var myLib = Store.get(K_LIB, []); // 내가 만든 종목 — 검색에 계속 나온다
       var routines = Store.get(K_ROUTINES, []); // 내가 만든 루틴(요일)
+      var prefs = Store.get(K_PREFS, {}); // { bar: 20 }
+      var order = Store.get(K_ORDER, {}); // { dayId: [종목ID 순서] }
 
       function today() {
         return Gym.todayKey();
@@ -623,6 +636,19 @@
         if (Store.set(K_CUSTOM, custom)) return true;
         notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
         return false;
+      }
+
+      function barKg() {
+        var b = Number(prefs.bar);
+        return isFinite(b) && b > 0 && b <= 100 ? b : 20;
+      }
+
+      function savePrefs() {
+        Store.set(K_PREFS, prefs);
+      }
+
+      function saveOrder() {
+        Store.set(K_ORDER, order);
       }
 
       function saveMyLib() {
@@ -1220,6 +1246,8 @@
         q: "",
         cat: null,
         pick: null,
+        /* 그래프 지표 — 최고 중량 / 추정 1RM / 볼륨 */
+        metric: "top",
         /* 종목을 추가할 그룹 — 웜업인지 메인인지 */
         grp: "main",
         theme: "system",
@@ -1344,6 +1372,16 @@
           .classList.toggle("on", state.section === "tips");
       }
 
+      /* PR 계산은 전체 기록을 훑는다. 카드마다 부르면 낭비라 렌더당 한 번만. */
+      var _prCache = null;
+      function prMap() {
+        if (!_prCache) _prCache = Gym.prByName(logs, exerciseName);
+        return _prCache;
+      }
+      function invalidatePR() {
+        _prCache = null;
+      }
+
       function exCard(ex, day, isCustom) {
         var date = recordDate();
         var stored = Gym.entryFor(logs, ex.id, date);
@@ -1355,7 +1393,8 @@
             return s.done;
           });
         var open = !!state.open[ex.id];
-        var prev = Gym.formatPrev(Gym.prevEntry(logs, ex.id, date));
+        var prevEntry = Gym.prevEntry(logs, ex.id, date);
+        var pr = prMap()[ex.name];
 
         var h =
           '<div class="card' +
@@ -1393,9 +1432,25 @@
             ? "휴식 " + (ex.rest >= 60 ? ex.rest / 60 + "분" : ex.rest + "초")
             : "연속") +
           "</div>";
-        if (ex.plates && ex.load) h += Gym.platesHTML(ex.load);
-        if (prev)
-          h += '<div class="last">지난 기록 · ' + Gym.esc(prev) + "</div>";
+        if (ex.plates && ex.load) h += Gym.platesHTML(ex.load, barKg());
+        if (pr)
+          h +=
+            '<div class="prbadge">PR ' +
+            pr.w +
+            "kg<span> · " +
+            Gym.esc(Gym.shortDate(pr.date)) +
+            "</span></div>";
+        if (prevEntry) {
+          var used = prevEntry.sets.filter(function (s) {
+            return s.w != null || s.r != null;
+          });
+          h +=
+            '<div class="last">지난 ' +
+            Gym.esc(Gym.shortDate(prevEntry.date)) +
+            "<b>" +
+            Gym.esc(Gym.formatSetLine(used)) +
+            "</b></div>";
+        }
         h += "</div>";
 
         h += '<div class="panel">';
@@ -1448,6 +1503,17 @@
             "</div>";
         }
         h += '<div class="ptools">';
+        h +=
+          '<button class="btn" data-up="' +
+          Gym.esc(ex.id) +
+          '" data-day="' +
+          Gym.esc(day.id) +
+          '" aria-label="위로">↑</button>' +
+          '<button class="btn" data-down="' +
+          Gym.esc(ex.id) +
+          '" data-day="' +
+          Gym.esc(day.id) +
+          '" aria-label="아래로">↓</button>';
         h +=
           '<button class="btn" data-addset="' +
           Gym.esc(ex.id) +
@@ -1764,6 +1830,47 @@
         return h;
       }
 
+      /* 저장된 순서가 있으면 그대로, 없으면 원래 순서. 새로 추가된 종목은 뒤로. */
+      function applyOrder(dayId, list) {
+        var ord = order[dayId];
+        if (!ord || !ord.length) return list;
+        var idx = {};
+        ord.forEach(function (id, i) {
+          idx[id] = i;
+        });
+        return list.slice().sort(function (a, b) {
+          var ia = idx[a.id] == null ? 9999 : idx[a.id];
+          var ib = idx[b.id] == null ? 9999 : idx[b.id];
+          return ia - ib;
+        });
+      }
+
+      function moveExercise(dayId, exId, delta) {
+        var day = allDays().filter(function (d) {
+          return d.id === dayId;
+        })[0];
+        if (!day) return;
+        var list = applyOrder(
+          dayId,
+          day.main.concat(
+            (custom[dayId] || []).filter(function (e) {
+              return e.grp !== "warm";
+            }),
+          ),
+        );
+        var ids = list.map(function (e) {
+          return e.id;
+        });
+        var i = ids.indexOf(exId);
+        var j = i + delta;
+        if (i < 0 || j < 0 || j >= ids.length) return;
+        ids[i] = ids[j];
+        ids[j] = exId;
+        order[dayId] = ids;
+        saveOrder();
+        render();
+      }
+
       function renderDay(day) {
         var h =
           '<div class="dayhead"><div class="num">' +
@@ -1802,11 +1909,12 @@
           '<div class="grp main"><div class="grp-label">' +
           (day.freeform ? "오늘 한 것" : "MAIN") +
           "</div>";
-        day.main.forEach(function (ex) {
-          h += exCard(ex, day, false);
+        var customIds = {};
+        addedMain.forEach(function (e) {
+          customIds[e.id] = 1;
         });
-        addedMain.forEach(function (ex) {
-          h += exCard(ex, day, true);
+        applyOrder(day.id, day.main.concat(addedMain)).forEach(function (ex) {
+          h += exCard(ex, day, !!customIds[ex.id]);
         });
         if (!day.main.length && !addedMain.length) {
           h +=
@@ -2048,8 +2156,15 @@
 
       /* 추이는 id 가 아니라 "같은 운동" 단위여야 한다. 내장 루틴과 카탈로그가
          서로 다른 id 를 쓰는 탓에, id 로 묶으면 한 종목이 둘로 갈라진다. */
+      var METRICS = [
+        { id: "top", label: "최고 중량", unit: "kg" },
+        { id: "e1rm", label: "추정 1RM", unit: "kg" },
+        { id: "volume", label: "볼륨", unit: "kg" },
+      ];
+
       function renderStats() {
-        var series = Gym.seriesByName(logs, exerciseName);
+        var metric = state.metric || "top";
+        var series = Gym.seriesByName(logs, exerciseName, metric);
         var names = Object.keys(series).sort();
         if (!names.length) {
           return '<div class="empty">아직 기록이 없어.<br>종목을 눌러서 중량과 반복수를 입력하면<br>여기에 그래프가 쌓여.</div>';
@@ -2057,7 +2172,22 @@
         if (!state.chartEx || names.indexOf(state.chartEx) < 0)
           state.chartEx = names[0];
 
-        var h = '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
+        var h = '<div class="seg" role="group" aria-label="그래프 지표">';
+        METRICS.forEach(function (m) {
+          h +=
+            '<button class="segbtn' +
+            (metric === m.id ? " on" : "") +
+            '" data-metric="' +
+            m.id +
+            '" aria-pressed="' +
+            (metric === m.id ? "true" : "false") +
+            '">' +
+            m.label +
+            "</button>";
+        });
+        h += "</div>";
+
+        h += '<select class="hsel" id="hsel" aria-label="그래프에 표시할 종목">';
         names.forEach(function (n) {
           h +=
             '<option value="' +
@@ -2101,7 +2231,319 @@
         return h;
       }
 
+      /* ---------- 테마 ---------- */
+      /* "system" 이면 속성을 지워 tokens.css 의 prefers-color-scheme 규칙에 맡긴다. */
+      function applyTheme(mode) {
+        var root = document.documentElement;
+        if (mode === "dark" || mode === "light") root.setAttribute("data-theme", mode);
+        else root.removeAttribute("data-theme");
+      }
+
+      function setTheme(mode) {
+        if (["system", "light", "dark"].indexOf(mode) < 0) return;
+        state.theme = mode;
+        applyTheme(mode);
+        try {
+          if (mode === "system") localStorage.removeItem(THEME_KEY);
+          else localStorage.setItem(THEME_KEY, mode);
+        } catch (e) {}
+        render();
+      }
+
+      (function initTheme() {
+        var saved = null;
+        try { saved = localStorage.getItem(THEME_KEY); } catch (e) {}
+        state.theme = saved === "dark" || saved === "light" ? saved : "system";
+        applyTheme(state.theme);
+      })();
+
+      function themeSegHTML() {
+        var opts = [
+          { id: "system", label: "시스템" },
+          { id: "light", label: "라이트" },
+          { id: "dark", label: "다크" },
+        ];
+        return (
+          '<div class="seg" role="group" aria-label="테마">' +
+          opts
+            .map(function (o) {
+              return (
+                '<button class="segbtn' +
+                (state.theme === o.id ? " on" : "") +
+                '" data-theme-set="' +
+                o.id +
+                '" aria-pressed="' +
+                (state.theme === o.id ? "true" : "false") +
+                '">' +
+                o.label +
+                "</button>"
+              );
+            })
+            .join("") +
+          "</div>"
+        );
+      }
+
+      /* ---------- 팁 ---------- */
+      function renderTips() {
+        var h =
+          '<div class="dayhead"><div class="num">TIPS</div><h2>훈련 팁</h2>' +
+          "<p>헷갈릴 때 열어보는 기준들</p></div>";
+
+        h += '<div class="sechead">중량 올리는 기준</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
+          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
+          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
+          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">세트 · 휴식</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>큰 종목은 2-3분, 작은 종목은 60초.</b> 휴식이 짧으면 반복수가 떨어져 총볼륨이 준다.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>마지막 세트는 2개 남기고 멈춘다.</b> 매 세트 실패까지 가면 다음 날 회복이 안 된다.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>세트가 모자라면 ＋ 세트로 늘린다.</b> 직전 세트의 중량·반복수를 그대로 복사해준다.</div></div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">기록 습관</div><div class="addbox">' +
+          '<div class="rule"><i>01</i><div><b>세트 끝나자마자 적는다.</b> 나중에 몰아 적으면 반드시 틀린다.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>못 적었으면 날짜를 되돌려 적는다.</b> 운동 화면 위쪽 날짜 바에서 옮길 수 있다.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>가끔 설정에서 내보내기.</b> 기록은 이 브라우저에만 있다.</div></div>' +
+          "</div>";
+        return h;
+      }
+
+      /* ---------- 설정 ---------- */
+      function logStats() {
+        var days = {},
+          exercises = 0,
+          sets = 0;
+        Object.keys(logs).forEach(function (id) {
+          exercises += 1;
+          (logs[id] || []).forEach(function (e) {
+            days[e.date] = 1;
+            sets += e.sets.filter(function (s) {
+              return s.w != null || s.r != null || s.done;
+            }).length;
+          });
+        });
+        return {
+          exercises: exercises,
+          days: Object.keys(days).length,
+          sets: sets,
+        };
+      }
+
+      function storedBytes() {
+        try {
+          var raw =
+            JSON.stringify(logs || {}) + JSON.stringify(custom || {});
+          return new Blob([raw]).size;
+        } catch (e) {
+          return 0;
+        }
+      }
+
+      function renderSettings() {
+        var s = logStats();
+
+        var h = '<div class="dayhead"><div class="num">SETTINGS</div><h2>설정</h2></div>';
+
+        h +=
+          '<div class="sechead">화면</div>' +
+          '<div class="addbox">' +
+          themeSegHTML() +
+          '<div class="hint">시스템으로 두면 기기 설정을 따라간다.</div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">바벨</div><div class="addbox">' +
+          '<div class="sumrow"><label for="s-bar">봉 무게</label>' +
+          '<div class="fld"><input type="number" id="s-bar" inputmode="decimal" step="0.5" ' +
+          'min="1" max="100" value="' +
+          barKg() +
+          '"><span>kg</span></div></div>' +
+          '<div class="hint">원판 계산에 쓴다. 여성용 봉은 15kg, EZ바는 보통 7-10kg.</div>' +
+          "</div>";
+
+        h +=
+          '<div class="sechead">앱 업데이트</div>' +
+          '<div class="addbox">' +
+          '<div class="srow"><span>캐시</span><b id="s-cache">확인 중…</b></div>' +
+          '<div class="srow"><span>서비스워커</span><b id="s-sw">확인 중…</b></div>' +
+          '<div class="ptools">' +
+          '<button class="btn" id="s-update">업데이트 확인</button>' +
+          '<button class="btn warnbtn" id="s-purge">캐시 비우고 새로고침</button>' +
+          "</div>" +
+          '<div class="hint">새 버전이 안 보이면 <b>캐시 비우고 새로고침</b>을 눌러.<br>' +
+          "앱 파일만 지우고 <b>운동 기록은 그대로 남는다.</b></div>" +
+          "</div>";
+
+        h +=
+          '<div class="sechead">저장 공간</div>' +
+          '<div class="addbox">' +
+          '<div class="srow"><span>기록한 날</span><b>' +
+          s.days +
+          "일</b></div>" +
+          '<div class="srow"><span>기록된 종목</span><b>' +
+          s.exercises +
+          "개</b></div>" +
+          '<div class="srow"><span>총 세트</span><b>' +
+          Gym.formatNumber(s.sets) +
+          "세트</b></div>" +
+          '<div class="srow"><span>기록 용량</span><b>' +
+          Gym.formatBytes(storedBytes()) +
+          "</b></div>" +
+          '<div class="srow"><span>브라우저 할당량</span><b id="s-quota">확인 중…</b></div>' +
+          "</div>";
+
+        h += '<div class="sechead">데이터</div>' + dataBoxHTML();
+
+        h +=
+          '<div class="sechead">앱 정보</div>' +
+          '<div class="addbox">' +
+          '<div class="srow"><span>실행 방식</span><b>' +
+          (window.matchMedia("(display-mode: standalone)").matches
+            ? "홈 화면 앱"
+            : "브라우저 탭") +
+          "</b></div>" +
+          '<div class="srow"><span>저장소</span><b>' +
+          (Store.ok ? "localStorage" : "메모리 (임시)") +
+          "</b></div>" +
+          '<div class="srow"><span>오프라인</span><b>' +
+          ("serviceWorker" in navigator ? "지원" : "미지원") +
+          "</b></div>" +
+          "</div>";
+
+        return h;
+      }
+
+      /* 캐시 이름·할당량은 비동기라 자리만 잡아두고 나중에 채운다. */
+      function fillSettingsAsync() {
+        var cacheEl = document.getElementById("s-cache");
+        var swEl = document.getElementById("s-sw");
+        var quotaEl = document.getElementById("s-quota");
+        if (!cacheEl) return;
+
+        if (window.caches) {
+          caches
+            .keys()
+            .then(function (keys) {
+              cacheEl.textContent = keys.length ? keys.join(", ") : "없음";
+            })
+            .catch(function () {
+              cacheEl.textContent = "확인 불가";
+            });
+        } else {
+          cacheEl.textContent = "미지원";
+        }
+
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker
+            .getRegistration()
+            .then(function (reg) {
+              if (!reg) {
+                swEl.textContent = "미등록";
+              } else if (reg.waiting) {
+                swEl.textContent = "새 버전 대기 중";
+              } else if (reg.active) {
+                swEl.textContent = "동작 중";
+              } else {
+                swEl.textContent = "설치 중";
+              }
+            })
+            .catch(function () {
+              swEl.textContent = "확인 불가";
+            });
+        } else {
+          swEl.textContent = "미지원";
+        }
+
+        if (navigator.storage && navigator.storage.estimate) {
+          navigator.storage
+            .estimate()
+            .then(function (est) {
+              quotaEl.textContent =
+                Gym.formatBytes(est.usage || 0) +
+                " / " +
+                Gym.formatBytes(est.quota || 0);
+            })
+            .catch(function () {
+              quotaEl.textContent = "확인 불가";
+            });
+        } else {
+          quotaEl.textContent = "미지원";
+        }
+      }
+
+      function checkUpdate() {
+        if (!("serviceWorker" in navigator)) {
+          notify("이 브라우저는 서비스워커를 지원하지 않아.");
+          return;
+        }
+        navigator.serviceWorker
+          .getRegistration()
+          .then(function (reg) {
+            if (!reg) {
+              notify("서비스워커가 등록돼 있지 않아. http/https 로 열어야 등록돼.");
+              return null;
+            }
+            return reg.update().then(function () {
+              if (reg.installing || reg.waiting) {
+                notify("새 버전을 받았어. 새로고침하면 적용돼.", "good");
+              } else {
+                notify("이미 최신이야.", "good");
+              }
+            });
+          })
+          .catch(function () {
+            notify("업데이트를 확인하지 못했어. 네트워크를 확인해줘.");
+          });
+      }
+
+      /* 앱 파일 캐시만 비운다. localStorage 는 건드리지 않는다. */
+      function purgeCaches() {
+        if (
+          !window.confirm(
+            "앱 파일 캐시를 비우고 새로고침할까?\n운동 기록은 지워지지 않아.",
+          )
+        )
+          return;
+
+        var jobs = [];
+        if ("serviceWorker" in navigator) {
+          jobs.push(
+            navigator.serviceWorker.getRegistrations().then(function (regs) {
+              return Promise.all(
+                regs.map(function (r) {
+                  return r.unregister();
+                }),
+              );
+            }),
+          );
+        }
+        if (window.caches) {
+          jobs.push(
+            caches.keys().then(function (keys) {
+              return Promise.all(
+                keys.map(function (k) {
+                  return caches.delete(k);
+                }),
+              );
+            }),
+          );
+        }
+        Promise.all(jobs)
+          .catch(function () {})
+          .then(function () {
+            location.reload();
+          });
+      }
+
       function render() {
+        invalidatePR();
         renderChips();
         renderNav();
         var v = document.getElementById("view");
@@ -2141,6 +2583,8 @@
             days: days,
             mylib: myLib,
             routines: routines,
+            prefs: prefs,
+            order: order,
           };
           var blob = new Blob([JSON.stringify(payload, null, 2)], {
             type: "application/json",
@@ -2191,6 +2635,7 @@
           var inDays = Gym.sanitizeDays(parsed.days);
           var inLib = Gym.sanitizeLibrary(parsed.mylib);
           var inRoutines = Gym.sanitizeRoutines(parsed.routines);
+          var inBar = parsed.prefs && parseFloat(parsed.prefs.bar);
           var nLogs = Object.keys(inLogs).length;
           var nCustom = Object.keys(inCustom).length;
           if (!nLogs && !nCustom) {
@@ -2205,6 +2650,10 @@
           routines = Gym.mergeRoutines(routines, inRoutines);
           saveMyLib();
           saveRoutines();
+          if (isFinite(inBar) && inBar > 0 && inBar <= 100) {
+            prefs.bar = inBar;
+            savePrefs();
+          }
           var okLogs = saveLogs(),
             okCustom = saveCustom();
           saveDays();
@@ -2225,6 +2674,7 @@
         days = {};
         myLib = [];
         routines = [];
+        order = {};
         state.open = {};
         state.chartEx = null;
         saveLogs();
@@ -2232,6 +2682,7 @@
         saveDays();
         saveMyLib();
         saveRoutines();
+        saveOrder();
         state.day = DAYS[0].id;
         render();
         notify("전체 삭제했어.", "good");
@@ -2239,10 +2690,10 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-daytab],[data-addset],[data-delset],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
-        "#s-update,#s-purge,#nav-settings,[data-theme-set],#alert";
+        "#s-update,#s-purge,#nav-settings,[data-theme-set],[data-metric],#alert";
 
       /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
       /* 거부하면 false 를 돌려준다 — 호출한 쪽이 입력창을 되돌려야 하기 때문. */
@@ -2416,6 +2867,11 @@
           return e.id !== exId;
         });
         if (!custom[dayId].length) delete custom[dayId];
+        if (order[dayId])
+          order[dayId] = order[dayId].filter(function (id) {
+            return id !== exId;
+          });
+        saveOrder();
         delete logs[exId]; // 고아 기록을 남기지 않는다
         delete state.open[exId];
         state.chartEx = null;
@@ -2564,12 +3020,25 @@
           Timer.start(+t.dataset.rest, "휴식");
           return;
         }
+        if (t.dataset.up) {
+          moveExercise(t.dataset.day, t.dataset.up, -1);
+          return;
+        }
+        if (t.dataset.down) {
+          moveExercise(t.dataset.day, t.dataset.down, 1);
+          return;
+        }
         if (t.dataset.addset) {
           addSet(t.dataset.addset);
           return;
         }
         if (t.dataset.delset) {
           removeSet(t.dataset.delset);
+          return;
+        }
+        if (t.dataset.metric) {
+          state.metric = t.dataset.metric;
+          render();
           return;
         }
         if (t.hasAttribute("data-grp")) {
@@ -2704,6 +3173,14 @@
       document.addEventListener("change", function (ev) {
         var el = ev.target;
 
+        if (el.id === "s-bar") {
+          var b = parseFloat(el.value);
+          if (isFinite(b) && b > 0 && b <= 100) prefs.bar = b;
+          else delete prefs.bar;
+          savePrefs();
+          render();
+          return;
+        }
         if (el.id === "s-min") {
           var mins = parseInt(el.value, 10);
           var rec = summaryDate();

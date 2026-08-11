@@ -634,6 +634,87 @@ describe('mergeDays / pruneDays', function(){
      Object.keys(Gym.pruneDays({ a: { min: 0 }, '2026-08-11': { min: 40 } })), ['2026-08-11']);
 });
 
+describe('1RM 추정 · 지표별 추이', function(){
+  eq('Epley: 1회는 그대로', Gym.estimate1RM(100, 1), 103.3);
+  eq('50kg 10회', Gym.estimate1RM(50, 10), 66.7);
+  eq('50kg 5회', Gym.estimate1RM(50, 5), 58.3);
+  // 반복수가 늘면 추정 1RM 도 오른다 — 최고중량만 보면 안 보이는 발전
+  ok('45x10 이 45x8 보다 높다', Gym.estimate1RM(45, 10) > Gym.estimate1RM(45, 8));
+  eq('중량이 없으면 null', Gym.estimate1RM(null, 10), null);
+  eq('반복수가 없으면 null', Gym.estimate1RM(50, null), null);
+  eq('0회는 null', Gym.estimate1RM(50, 0), null);
+  eq('0kg 은 null', Gym.estimate1RM(0, 10), null);
+
+  var e = { date: '2026-08-11', sets: [{ w: 40, r: 10 }, { w: 50, r: 5 }] };
+  eq('최고 중량', Gym.entryMetric(e, 'top'), 50);
+  eq('볼륨은 합', Gym.entryMetric(e, 'volume'), 40*10 + 50*5);
+  eq('1RM 은 세트 중 최대', Gym.entryMetric(e, 'e1rm'), Gym.estimate1RM(50, 5));
+  eq('지표를 안 주면 최고 중량', Gym.entryMetric(e), 50);
+
+  var names = { a: '벤치', b: '벤치' };
+  var logs = {
+    a: [{ date: '2026-08-01', sets: [{ w: 40, r: 10 }] }],
+    b: [{ date: '2026-08-01', sets: [{ w: 50, r: 5 }] }]
+  };
+  var nameOf = function(id){ return names[id]; };
+  // 같은 날 두 id — 볼륨은 합치고 최고중량은 더 높은 쪽
+  eq('볼륨은 합친다', Gym.seriesByName(logs, nameOf, 'volume')['벤치'][0].v, 400 + 250);
+  eq('최고중량은 큰 쪽', Gym.seriesByName(logs, nameOf, 'top')['벤치'][0].v, 50);
+});
+
+describe('prByName', function(){
+  var names = { a: '벤치', b: '벤치', c: '스쿼트' };
+  var nameOf = function(id){ return names[id]; };
+  var logs = {
+    a: [{ date: '2026-08-01', sets: [{ w: 50, r: 8 }] },
+        { date: '2026-08-08', sets: [{ w: 47.5, r: 10 }] }],
+    b: [{ date: '2026-08-05', sets: [{ w: 55, r: 3 }] }],
+    c: [{ date: '2026-08-02', sets: [{ w: 80, r: 5 }] }]
+  };
+  var pr = Gym.prByName(logs, nameOf);
+  eq('갈라진 id 를 합쳐 최고를 찾는다', pr['벤치'], { w: 55, date: '2026-08-05' });
+  eq('종목마다 따로', pr['스쿼트'], { w: 80, date: '2026-08-02' });
+
+  var bw = { p: [{ date: '2026-08-01', sets: [{ w: null, r: null, done: true }] }] };
+  eq('중량 없는 종목은 PR 없음', Object.keys(Gym.prByName(bw, function(){ return '플랭크'; })), []);
+  eq('빈 입력도 안전', Gym.prByName(null, nameOf), {});
+});
+
+/* ---------- index.html 정합성 ----------
+   실수로 함수를 통째로 날린 적이 있다(구간 잘라내기 리팩터). 구문 검사는
+   통과하는데 화면만 죽어서 못 잡았다. 그래서 여기서 정적으로 확인한다. */
+describe('index.html 무결성', function(){
+  var fs = require('fs');
+  var html = fs.readFileSync(__dirname + '/index.html', 'utf8');
+
+  // 라우팅·핸들러가 부르는 함수는 반드시 정의돼 있어야 한다
+  var required = [
+    'render', 'renderDay', 'renderChips', 'renderNav', 'renderCalendar',
+    'renderStats', 'renderTips', 'renderSettings', 'daySummaryHTML',
+    'sumStatsHTML', 'refreshSummary', 'summaryDate', 'fillSettingsAsync',
+    'checkUpdate', 'purgeCaches', 'applyTheme', 'setTheme', 'themeSegHTML',
+    'logStats', 'storedBytes', 'addExercise', 'deleteExercise', 'addSet',
+    'removeSet', 'moveExercise', 'applyOrder', 'newRoutine', 'renameRoutine',
+    'deleteRoutine', 'setLogDate', 'exportData', 'importFile', 'resetAll',
+    'barKg', 'prMap', 'allDays', 'searchPool'
+  ];
+  var missing = required.filter(function(f){
+    return html.indexOf('function ' + f + '(') < 0;
+  });
+  eq('render 계열 함수가 모두 정의돼 있다', missing, []);
+
+  // 위임 셀렉터에 적힌 data-* 는 실제로 마크업에 있어야 한다
+  var sel = html.match(/var CLICK_SELECTOR =([\s\S]*?);/);
+  ok('CLICK_SELECTOR 를 찾았다', !!sel);
+  var attrs = (sel[1].match(/\[data-([a-z]+)\]/g) || []).map(function(a){
+    return a.slice(6, -1);
+  });
+  var unused = attrs.filter(function(a){
+    return html.indexOf('data-' + a + '="') < 0;
+  });
+  eq('셀렉터의 data 속성이 모두 실제로 쓰인다', unused, []);
+});
+
 /* ---------- 결과 ---------- */
 if (failures.length){
   console.error('\n  실패 ' + failures.length + '건\n');
