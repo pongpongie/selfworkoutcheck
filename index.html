@@ -25,13 +25,29 @@
     />
     <link rel="stylesheet" href="./tokens.css" />
     <script>
-      /* 첫 페인트 전에 테마를 적용해야 화면이 번쩍이지 않는다. */
+      /* 첫 페인트 전에 테마를 적용해야 화면이 번쩍이지 않습니다. */
       (function () {
+        var t = null;
         try {
-          var t = localStorage.getItem("gym.theme.v1");
-          if (t === "dark" || t === "light")
-            document.documentElement.setAttribute("data-theme", t);
+          t = localStorage.getItem("gym.theme.v1");
         } catch (e) {}
+        if (t === "dark" || t === "light")
+          document.documentElement.setAttribute("data-theme", t);
+
+        /* iOS 홈 화면 앱의 상태바는 이 메타로만 정해지고 값이 셋뿐입니다.
+           theme-color 는 iOS 에 안 먹습니다. 다크면 투명으로 두어 앱바 색이
+           상태바까지 이어지게 하고, 라이트면 기본(흰 배경 + 검은 글씨)으로 둡니다.
+           런타임에 바꿔도 iOS 는 실행 시점 값만 보므로 여기서 정합니다. */
+        var dark =
+          t === "dark" ||
+          (t !== "light" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var meta = document.querySelector(
+          'meta[name="apple-mobile-web-app-status-bar-style"]',
+        );
+        if (meta)
+          meta.setAttribute("content", dark ? "black-translucent" : "default");
       })();
     </script>
     <style>
@@ -171,12 +187,11 @@
         border-bottom: 1px solid var(--line);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
-        border-bottom: 1px solid var(--line);
-        padding-top: var(--safe-t);
       }
       .appbar-in {
         display: flex; align-items: center; gap: var(--gap-sm);
-        max-width: 720px; margin: 0 auto; padding: 10px var(--gap-md);
+        max-width: 720px; margin: 0 auto;
+        padding: calc(10px + var(--safe-t)) var(--gap-md) 10px;
       }
       .brandicon {
         width: 30px; height: 30px; flex: none;
