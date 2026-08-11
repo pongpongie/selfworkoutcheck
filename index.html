@@ -87,6 +87,7 @@
         font-weight: var(--w-medium); display: grid; place-items: center;
       }
       .step b { color: var(--text); font-weight: var(--w-medium); }
+      .step .sub { color: var(--text-3); font-size: var(--t-small); }
       .step .ico { font-family: -apple-system, system-ui; }
       /* ---------- home ---------- */
       .greet { padding: var(--gap-lg) 0 var(--gap-md); display: flex; align-items: flex-end; gap: 12px; }
@@ -2126,10 +2127,10 @@
         }
         if (isIOS()) {
           h +=
-            '<div class="steps"><div class="step"><i>1</i><div>주소창 아래 <b>공유 버튼</b>을 눌러주세요 <span class="ico">􀈂</span></div></div>' +
+            '<div class="steps"><div class="step"><i>1</i><div><b>공유 버튼</b>을 눌러주세요 <span class="ico">􀈂</span><br><span class="sub">사파리는 아래쪽, 크롬은 오른쪽 위에 있어요</span></div></div>' +
             '<div class="step"><i>2</i><div>목록을 내려 <b>“홈 화면에 추가”</b>를 눌러주세요</div></div>' +
             '<div class="step"><i>3</i><div>오른쪽 위 <b>추가</b>를 누르시면 끝이에요</div></div></div>' +
-            '<div class="hint"><b>Safari 로 열어주세요.</b> 크롬·네이버 앱에서는 이 메뉴가 없어요.</div>';
+            '<div class="hint">사파리·크롬 모두 됩니다. 카카오톡이나 인스타 안에서 열었다면 이 메뉴가 없을 수 있어요 — 그때는 사파리나 크롬으로 열어주세요.</div>';
           return h;
         }
         h +=
