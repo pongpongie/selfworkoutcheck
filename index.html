@@ -52,13 +52,20 @@
     </script>
     <style>
       * { box-sizing: border-box; margin: 0; padding: 0; }
-      html { -webkit-text-size-adjust: 100%; background: var(--bg); }
+      html {
+        -webkit-text-size-adjust: 100%;
+        background: var(--bg);
+        /* iOS 에서 짧은 화면을 당기면 러버밴드로 고정된 하단바가 딸려 올라간다. */
+        overscroll-behavior-y: none;
+      }
       body {
         /* 배경은 html 이 진다. 여기서 칠하면 body::before 앰비언트가 가려진다. */
         background: transparent; color: var(--text);
         font-family: var(--font-ui);
         font-size: var(--t-body); line-height: var(--t-body-lh);
         padding-bottom: calc(var(--tap) + 34px + var(--safe-b));
+        min-height: 100dvh;
+        overscroll-behavior-y: none;
         -webkit-font-smoothing: antialiased;
       }
       input, button, select, textarea { font-family: inherit; color: inherit; }
@@ -138,7 +145,8 @@
       .hero .go:hover { background: var(--accent-hover); }
       .hero .go:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
-      .empty-session { text-align: center; padding: var(--gap-xl) var(--pad-container); }
+      .sec-tools { margin-top: var(--gap-lg); }
+      .empty-session { text-align: center; padding: var(--gap-xl) var(--pad-container); margin-top: var(--gap-lg); }
       .empty-session h3 {
         font-size: var(--t-headline); font-weight: var(--w-semibold);
         letter-spacing: -0.4px; margin-bottom: 6px;
@@ -227,11 +235,12 @@
         font-weight: var(--w-regular); letter-spacing: 0.08em;
         color: var(--text-3); text-transform: uppercase;
       }
-      .today {
+      /* .wcell.today 와 클래스가 겹쳐 주간 스트립 칸이 10px 좁아졌었다.
+         상단바 날짜는 id 로 좁혀 쓴다. */
+      #today {
         font-family: var(--font-mono); font-size: var(--t-small);
-        color: var(--text-3); margin-right: 10px;
+        color: var(--text-3); margin-right: 10px; white-space: nowrap;
       }
-      .today.off { color: var(--warning); font-weight: var(--w-medium); }
       .iconbtn {
         width: var(--tap); height: var(--tap); flex: none;
         display: grid; place-items: center;
@@ -304,11 +313,11 @@
       .sechead {
         font-size: var(--t-headline); line-height: var(--t-headline-lh);
         font-weight: var(--w-semibold); letter-spacing: -0.4px;
-        margin: var(--gap-lg) 0 var(--gap-sm);
+        margin: var(--gap-xl) 0 var(--gap-sm);
       }
 
       /* ---------- groups & cards ---------- */
-      .grp { margin-top: var(--gap-md); }
+      .grp { margin-top: var(--gap-lg); }
       .grp-label {
         font-family: var(--font-mono); font-weight: var(--w-medium);
         font-size: var(--t-small); letter-spacing: 0.08em;
@@ -409,7 +418,7 @@
       /* ---------- boxes ---------- */
       .addbox {
         background: var(--surface); border: 1px solid var(--line);
-        border-radius: var(--radius-container); padding: var(--pad-container); margin-top: var(--gap-sm);
+        border-radius: var(--radius-container); padding: var(--pad-container); margin-top: var(--gap-lg);
       }
       .addbox h4 { font-size: var(--t-caption); font-weight: var(--w-medium); color: var(--text-3); margin-bottom: var(--gap-sm); }
       .addgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -492,7 +501,7 @@
       /* ---------- date bar ---------- */
       .datebar {
         display: flex; align-items: center; gap: var(--gap-sm);
-        margin-top: var(--gap-md); padding: 8px;
+        margin-top: var(--gap-lg); padding: 8px;
         border: 1px solid var(--line); border-radius: var(--radius-container); background: var(--surface);
       }
       .datebar.past { background: var(--warning-soft); border-color: var(--warning); }
@@ -2227,7 +2236,7 @@
           });
           h += "</div>";
           h +=
-            '<div class="ptools" style="margin-top:14px">' +
+            '<div class="ptools sec-tools">' +
             '<button class="btn" data-panel="add">＋ 종목 추가</button>' +
             '<button class="btn" data-panel="routines">루틴 불러오기</button>' +
             "</div>";
@@ -2542,7 +2551,7 @@
         h +=
           '<div class="sumrow"><label for="s-min">운동 시간</label>' +
           '<div class="fld"><input type="number" id="s-min" inputmode="numeric" min="0" max="1440" ' +
-          'placeholder="분" value="' +
+          'placeholder="0" value="' +
           (note.min || "") +
           '"><span>분</span></div></div>';
 
@@ -2613,7 +2622,7 @@
         h += daySummaryHTML(state.calDay, cal);
 
         h +=
-          '<div class="ptools" style="margin:10px 0 14px">' +
+          '<div class="ptools" style="margin:var(--gap-md) 0 var(--gap-lg)">' +
           '<button class="btn primary" data-jump="' +
           Gym.esc(state.calDay) +
           '">' +
@@ -3117,13 +3126,9 @@
         } else {
           v.innerHTML = renderSession(recordDate());
         }
-        /* 상단에는 실제로 기록이 들어가는 날짜를 띄운다. 오늘이 아니면 눈에 띄게. */
-        var stamp = document.getElementById("today");
-        var isToday = recordDate() === today();
-        stamp.textContent =
-          recordDate() + (isToday ? "" : " ← 기록 중");
-        stamp.style.color = isToday ? "" : "var(--accent)";
-        stamp.style.fontWeight = isToday ? "" : "700";
+        /* 어느 날짜를 보고 있는지는 운동 화면의 날짜 바가 알려준다.
+           상단은 날짜만 담백하게 둔다. */
+        document.getElementById("today").textContent = recordDate();
       }
 
       /* ============ backup ============ */

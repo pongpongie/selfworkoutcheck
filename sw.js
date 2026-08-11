@@ -1,4 +1,4 @@
-var CACHE = 'gym-v22';
+var CACHE = 'gym-v23';
 var ASSETS = [
   './', './index.html', './tokens.css', './core.js', './exercises.js', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-512-maskable.png'
