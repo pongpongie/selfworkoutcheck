@@ -145,7 +145,7 @@
   --glass-bg-strong: rgba(255, 255, 255, 0.72);
   --glass-edge-1: rgba(255, 255, 255, 0.95);
   --glass-edge-2: rgba(255, 255, 255, 0.15);
-  --glass-inner: rgba(255, 255, 255, 0.7);
+  --glass-inner: rgba(255, 255, 255, 0.85);
   --glass-blur: 24px;
 
   /* 유리 뒤에 깔리는 색. 이게 없으면 blur 가 할 일이 없다. */
@@ -191,7 +191,7 @@
     --glass-bg-strong: rgba(255, 255, 255, 0.1);
     --glass-edge-1: rgba(255, 255, 255, 0.62);
     --glass-edge-2: rgba(255, 255, 255, 0.06);
-    --glass-inner: rgba(255, 255, 255, 0.14);
+    --glass-inner: rgba(255, 255, 255, 0.22);
     --glass-blur: 26px;
 
     --amb-1: rgba(51, 149, 255, 0.5);
@@ -239,7 +239,7 @@
   --glass-bg-strong: rgba(255, 255, 255, 0.1);
   --glass-edge-1: rgba(255, 255, 255, 0.62);
   --glass-edge-2: rgba(255, 255, 255, 0.06);
-  --glass-inner: rgba(255, 255, 255, 0.14);
+  --glass-inner: rgba(255, 255, 255, 0.22);
   --glass-blur: 26px;
 
   --amb-1: rgba(51, 149, 255, 0.5);

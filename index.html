@@ -72,18 +72,10 @@
         background-clip: padding-box, border-box;
         -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
         backdrop-filter: blur(var(--glass-blur)) saturate(180%);
-        box-shadow: var(--shadow-md);
+        /* 스펙큘러는 모서리 한 줄이어야 유리로 읽힌다.
+           면으로 깔면 카드 위쪽에 흰 띠가 생겨 어색해진다. */
+        box-shadow: var(--shadow-md), inset 0 1px 0 var(--glass-inner);
       }
-      /* 위쪽 모서리에 스치는 빛 */
-      .glass::after {
-        content: "";
-        position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-        background: linear-gradient(180deg, var(--glass-inner), transparent 38%);
-        opacity: 0.5;
-        -webkit-mask-image: linear-gradient(180deg, #000 0 40%, transparent 100%);
-        mask-image: linear-gradient(180deg, #000 0 40%, transparent 100%);
-      }
-      .glass > * { position: relative; z-index: 1; }
 
       .installtitle { font-size: var(--t-footnote); font-weight: var(--w-medium); }
       .steps { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -185,6 +177,11 @@
         display: flex; align-items: center; gap: var(--gap-sm);
         max-width: 720px; margin: 0 auto; padding: 10px var(--gap-md);
       }
+      .brandicon {
+        width: 30px; height: 30px; flex: none;
+        border-radius: 8px; display: block;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+      }
       .brandmark {
         font-size: var(--t-headline); line-height: 1;
         font-weight: var(--w-semibold); letter-spacing: -0.6px; margin-right: auto;
@@ -195,7 +192,10 @@
         font-weight: var(--w-regular); letter-spacing: 0.08em;
         color: var(--text-3); text-transform: uppercase;
       }
-      .today { font-family: var(--font-mono); font-size: var(--t-small); color: var(--text-3); }
+      .today {
+        font-family: var(--font-mono); font-size: var(--t-small);
+        color: var(--text-3); margin-right: 10px;
+      }
       .today.off { color: var(--warning); font-weight: var(--w-medium); }
       .iconbtn {
         width: var(--tap); height: var(--tap); flex: none;
@@ -601,6 +601,7 @@
   <body>
     <header class="appbar">
       <div class="appbar-in">
+        <img class="brandicon" src="./icon-192.png" alt="" width="30" height="30" />
         <div class="brandmark">심트<small>Simple Training</small></div>
         <span class="today" id="today"></span>
         <button class="iconbtn" id="nav-tips" aria-label="훈련 팁" title="훈련 팁">
