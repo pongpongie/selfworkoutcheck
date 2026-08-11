@@ -756,22 +756,25 @@
             'role="img" aria-label="최고 세트 중량 추이" font-family="JetBrains Mono, monospace">';
     [0, 0.5, 1].forEach(function (f) {
       var v = mn + (mx - mn) * f, yy = y(v);
-      s += '<line x1="' + PL + '" y1="' + yy + '" x2="' + (W - PR) + '" y2="' + yy + '" stroke="#D6D4CF" stroke-width="1"/>';
-      s += '<text x="' + (PL - 6) + '" y="' + (yy + 3.5) + '" font-size="9" fill="#616973" text-anchor="end">' + Math.round(v) + '</text>';
+      s += '<line class="grid" x1="' + PL + '" y1="' + yy + '" x2="' + (W - PR) + '" y2="' + yy + '" stroke-width="1"/>';
+      s += '<text class="lbl" x="' + (PL - 6) + '" y="' + (yy + 3.5) + '" font-size="9" text-anchor="end">' + Math.round(v) + '</text>';
     });
     var d = series.map(function (p, i) {
       return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1);
     }).join(' ');
-    s += '<path d="' + d + '" fill="none" stroke="#B72B27" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    s += '<path class="line" d="' + d + '" fill="none" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
     series.forEach(function (p, i) {
-      s += '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="3.5" fill="#fff" stroke="#B72B27" stroke-width="2"/>';
+      s += '<circle class="pt" cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="3.5" stroke-width="2"/>';
     });
     var step = Math.ceil(series.length / 5);
     series.forEach(function (p, i) {
-      if (i % step === 0 || i === series.length - 1) {
-        s += '<text x="' + x(i).toFixed(1) + '" y="' + (H - 8) + '" font-size="9" fill="#616973" text-anchor="middle">' +
-             esc(shortDate(p.d)) + '</text>';
-      }
+      if (i % step !== 0 && i !== series.length - 1) return;
+      /* 가운데 정렬이면 첫·마지막 라벨이 그림 밖으로 나가 잘린다. */
+      var anchor =
+        i === 0 ? 'start' : i === series.length - 1 ? 'end' : 'middle';
+      s += '<text class="lbl" x="' + x(i).toFixed(1) + '" y="' + (H - 8) +
+           '" font-size="9" text-anchor="' + anchor + '">' +
+           esc(shortDate(p.d)) + '</text>';
     });
     s += '</svg>';
     return s;

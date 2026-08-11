@@ -432,7 +432,25 @@
 
       /* ---------- history ---------- */
       .hsel { margin: var(--gap-md) 0; font-size: var(--t-body); }
-      .chart { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-container); padding: var(--gap-md) 8px 8px; }
+      .chart {
+        background: var(--surface); border: 1px solid var(--line);
+        border-radius: var(--radius-container); padding: var(--gap-md) 8px 8px;
+      }
+      .chart .grid { stroke: currentColor; stroke-opacity: 0.14; }
+      .chart .lbl { fill: currentColor; fill-opacity: 0.5; }
+      .chart .line { stroke: var(--accent); }
+      .chart .pt { fill: var(--bg-elevated); stroke: var(--accent); }
+      /* 하단바 바로 아래 붙지 않게 */
+      .seg.metrics { margin-top: var(--gap-lg); }
+      .metricnote {
+        margin-top: var(--gap-sm); font-size: var(--t-caption);
+        line-height: var(--t-caption-lh); color: var(--text-3);
+      }
+      .metricnote code {
+        font-family: var(--font-mono); font-size: var(--t-small);
+        color: var(--text-2); background: var(--surface-2);
+        padding: 2px 6px; border-radius: 4px;
+      }
       .hlist { margin-top: var(--gap-md); }
       .hitem {
         background: var(--surface); border: 1px solid var(--line);
@@ -2720,6 +2738,20 @@
         { id: "volume", label: "볼륨", unit: "kg" },
       ];
 
+      /* 지표가 무엇을 재는지 화면에서 바로 알 수 있게 한 줄 적어둔다. */
+      function metricNote(metric) {
+        if (metric === "e1rm")
+          return (
+            "그날 세트 중 가장 높은 추정치예요. " +
+            "<code>중량 × (1 + 반복수 ÷ 30)</code> — Epley 공식. " +
+            "5~12회 구간에서 쓸 만하고, 그 밖에서는 오차가 커져요. " +
+            "실제로 재본 1RM 이 아니라 추세를 보는 값이에요."
+          );
+        if (metric === "volume")
+          return "그날 <code>중량 × 반복수</code> 를 모두 더한 값이에요. 맨몸 종목은 볼륨에 안 잡혀요.";
+        return "그날 가장 무겁게 든 세트의 중량이에요. 반복수가 늘어난 발전은 이 지표로는 안 보여요.";
+      }
+
       function renderStats() {
         var metric = state.metric || "top";
         var series = Gym.seriesByName(logs, exerciseName, metric);
@@ -2730,7 +2762,7 @@
         if (!state.chartEx || names.indexOf(state.chartEx) < 0)
           state.chartEx = names[0];
 
-        var h = '<div class="seg" role="group" aria-label="그래프 지표">';
+        var h = '<div class="seg metrics" role="group" aria-label="그래프 지표">';
         METRICS.forEach(function (m) {
           h +=
             '<button class="segbtn' +
@@ -2759,6 +2791,7 @@
         h += "</select>";
 
         h += '<div class="chart">' + Gym.chartSVG(series[state.chartEx]) + "</div>";
+        h += '<div class="metricnote">' + metricNote(metric) + "</div>";
 
         /* 이력도 같은 이름을 쓰는 id 를 전부 모아 날짜별로 합친다. */
         var byDate = {};

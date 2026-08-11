@@ -419,7 +419,10 @@ describe('chartSVG', function(){
     { d: '2026-01-15', v: 42 }
   ]);
   ok('SVG 를 그린다', svg.indexOf('<svg') === 0);
-  ok('꺾은선 경로가 있다', svg.indexOf('<path d="M') >= 0);
+  ok('꺾은선 경로가 있다', /<path[^>]*d="M/.test(svg));
+  // 첫·마지막 축 라벨은 가운데 정렬이면 그림 밖으로 잘린다
+  ok('첫 라벨은 왼쪽 정렬', svg.indexOf('text-anchor="start"') >= 0);
+  ok('마지막 라벨은 오른쪽 정렬', svg.indexOf('text-anchor="end"') >= 0);
   ok('점을 3개 찍는다', svg.split('<circle').length - 1 === 3);
   ok('스크린리더용 라벨이 있다', svg.indexOf('role="img"') >= 0);
   ok('NaN 좌표가 없다', svg.indexOf('NaN') < 0);
