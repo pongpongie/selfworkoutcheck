@@ -761,6 +761,30 @@ describe('index.html 무결성', function(){
     return html.indexOf('data-' + a + '="') < 0;
   });
   eq('셀렉터의 data 속성이 모두 실제로 쓰인다', unused, []);
+
+  /* 반대 방향도 본다. 버튼에 data-* 를 달아놓고 셀렉터에 안 넣으면
+     눌러도 아무 일이 없는데 구문 검사로는 안 잡힌다 — 실제로 겪었다. */
+  var PASSIVE = ['i', 'day', 'ex', 'w', 'r', 'theme'];  // 값 전달용, 위임 대상 아님
+  var onButtons = {};
+  var btn = /<button[^>]*>/g, mm;
+  var buttonish = html.match(/'<button[^']*'/g) || [];
+  buttonish.forEach(function(chunk){
+    (chunk.match(/data-([a-z]+)="/g) || []).forEach(function(a){
+      var name = a.slice(5, -2);
+      if (PASSIVE.indexOf(name) < 0) onButtons[name] = 1;
+    });
+  });
+  var notWired = Object.keys(onButtons).filter(function(a){
+    return sel[1].indexOf('[data-' + a + ']') < 0;
+  });
+  eq('버튼에 쓴 data 속성이 모두 셀렉터에 있다', notWired, []);
+
+  // 셀렉터에 있으면 핸들러도 있어야 한다
+  var handlerless = attrs.filter(function(a){
+    var camel = a.replace(/-([a-z])/g, function(_, c){ return c.toUpperCase(); });
+    return html.indexOf('dataset.' + camel) < 0 && html.indexOf('"data-' + a + '"') < 0;
+  });
+  eq('셀렉터의 data 속성마다 핸들러가 있다', handlerless, []);
 });
 
 /* ---------- 결과 ---------- */

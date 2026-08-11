@@ -3051,7 +3051,7 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-start],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
         "#s-update,#s-purge,#do-install,#nav-settings,[data-theme-set],[data-metric],#alert";
@@ -3328,6 +3328,13 @@
           return;
         }
 
+        if (t.dataset.start) {
+          state.day = t.dataset.start;
+          state.section = "workout";
+          window.scrollTo(0, 0);
+          render();
+          return;
+        }
         if (t.dataset.section) {
           state.section = t.dataset.section;
           window.scrollTo(0, 0);
