@@ -669,7 +669,7 @@
     <script>
       if (typeof Gym === "undefined" || typeof GymExercises === "undefined") {
         document.getElementById("view").innerHTML =
-          '<div class="empty">core.js / exercises.js 를 불러오지 못했어.<br>index.html 과 같은 폴더에 있는지 확인해줘.</div>';
+          '<div class="empty">core.js / exercises.js 를 불러오지 못했어요.<br>index.html 과 같은 폴더에 있는지 확인해주세요.</div>';
         throw new Error("core.js or exercises.js missing");
       }
 
@@ -760,13 +760,13 @@
         logs = pruned.logs;
         if (Store.set(K_LOG, logs)) return true;
         notify(
-          "저장 공간이 부족해서 기록이 저장되지 않았어. 내보내기로 백업한 뒤 오래된 기록을 정리해줘.",
+          "저장 공간이 부족해서 기록이 저장되지 않았어요. 내보내기로 백업한 뒤 오래된 기록을 정리해주세요.",
         );
         return false;
       }
       function saveCustom() {
         if (Store.set(K_CUSTOM, custom)) return true;
-        notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        notify("저장 공간이 부족해서 종목이 저장되지 않았어요.");
         return false;
       }
 
@@ -785,20 +785,20 @@
 
       function saveMyLib() {
         if (Store.set(K_LIB, myLib)) return true;
-        notify("저장 공간이 부족해서 종목이 저장되지 않았어.");
+        notify("저장 공간이 부족해서 종목이 저장되지 않았어요.");
         return false;
       }
 
       function saveRoutines() {
         if (Store.set(K_ROUTINES, routines)) return true;
-        notify("저장 공간이 부족해서 루틴이 저장되지 않았어.");
+        notify("저장 공간이 부족해서 루틴이 저장되지 않았어요.");
         return false;
       }
 
       function saveDays() {
         days = Gym.pruneDays(days);
         if (Store.set(K_DAYS, days)) return true;
-        notify("저장 공간이 부족해서 메모가 저장되지 않았어.");
+        notify("저장 공간이 부족해서 메모가 저장되지 않았어요.");
         return false;
       }
 
@@ -1699,8 +1699,8 @@
           '<button class="btn" id="d-import">불러오기</button>' +
           '<button class="btn warnbtn" id="d-reset">전체 삭제</button>' +
           "</div>" +
-          '<div class="hint">기록은 이 브라우저에만 있어. 가끔 내보내서 따로 보관해줘.<br>' +
-          "불러오기는 덮어쓰지 않고 <b>합친다</b> — 같은 날짜·같은 종목만 파일 쪽 값으로 바뀐다.</div>" +
+          '<div class="hint">기록은 이 브라우저에만 있어요. 가끔 내보내서 따로 보관해주세요.<br>' +
+          "불러오기는 덮어쓰지 않고 <b>합쳐요</b> — 같은 날짜·같은 종목만 파일 쪽 값으로 바뀌어요.</div>" +
           "</div>"
         );
       }
@@ -1753,12 +1753,12 @@
         );
         if (!hits.length) {
           return (
-            '<li class="sugnone">찾는 종목이 없어.<br>' +
+            '<li class="sugnone">찾는 종목이 없어요.<br>' +
             (state.cat
               ? "그대로 <b>추가하기</b>를 누르면 <b>" +
                 Gym.esc(GymExercises.categoryName(state.cat)) +
-                "</b> 종목으로 등록되고 다음부터 검색에 나와."
-              : "<b>부위를 먼저 고르면</b> 새 종목으로 등록할 수 있어.") +
+                "</b> 종목으로 등록되고 다음부터 검색에 나와요."
+              : "<b>부위를 먼저 고르시면</b> 새 종목으로 등록할 수 있어요.") +
             "</li>"
           );
         }
@@ -1826,7 +1826,7 @@
       }
 
       function newRoutine() {
-        var name = (window.prompt("루틴 이름을 지어줘 (예: 팔 집중, 홈트)") || "").trim();
+        var name = (window.prompt("루틴 이름을 지어주세요 (예: 팔 집중, 홈트)") || "").trim();
         if (!name) return;
         var r = { id: "r-" + Date.now(), name: name.slice(0, MAX_NAME) };
         routines = routines.concat([r]);
@@ -1834,7 +1834,7 @@
         state.day = r.id;
         state.section = "workout";
         render();
-        notify(r.name + " 루틴을 만들었어.", "good");
+        notify(r.name + " 루틴을 만들었어요.", "good");
       }
 
       function renameRoutine(id) {
@@ -1854,7 +1854,7 @@
         if (!cur) return;
         if (
           !window.confirm(
-            cur.name + " 루틴을 지울까?\n담긴 종목 구성만 사라지고 운동 기록은 남아.",
+            cur.name + " 루틴을 지울까요?\n담긴 종목 구성만 사라지고 운동 기록은 남아요.",
           )
         )
           return;
@@ -1864,7 +1864,7 @@
         saveCustom();
         state.day = DAYS[0].id;
         render();
-        notify(cur.name + " 루틴을 지웠어.", "good");
+        notify(cur.name + " 루틴을 지웠어요.", "good");
       }
 
       function routineToolsHTML(day) {
@@ -2050,7 +2050,7 @@
         });
         if (!day.main.length && !addedMain.length) {
           h +=
-            '<div class="empty">아직 넣은 종목이 없어.<br>아래에서 검색해서 추가해.</div>';
+            '<div class="empty">아직 넣은 종목이 없어요.<br>아래에서 검색해서 추가해주세요.</div>';
         }
         h += "</div>";
 
@@ -2075,7 +2075,7 @@
 
         if (!Store.ok) {
           h +=
-            '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아. 직접 호스팅하면 정상 저장돼.</div>';
+            '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아요. 직접 호스팅하시면 정상 저장돼요.</div>';
         }
         return h;
       }
@@ -2107,7 +2107,7 @@
 
       window.addEventListener("appinstalled", function () {
         installPrompt = null;
-        notify("설치했어. 이제 홈 화면에서 바로 열 수 있어.", "good");
+        notify("설치했어요. 이제 홈 화면에서 바로 열 수 있어요.", "good");
         render();
       });
 
@@ -2115,28 +2115,28 @@
         if (isStandalone()) {
           return compact
             ? ""
-            : '<div class="hint">이미 홈 화면 앱으로 실행 중이야.</div>';
+            : '<div class="hint">이미 홈 화면 앱으로 실행 중이에요.</div>';
         }
         var h = "";
         if (installPrompt) {
           h +=
-            '<div class="hint">브라우저가 설치를 지원해. 한 번 누르면 끝나.</div>' +
+            '<div class="hint">브라우저가 설치를 지원해요. 한 번 누르시면 끝나요.</div>' +
             '<div class="ptools"><button class="btn primary" id="do-install">앱 설치하기</button></div>';
           return h;
         }
         if (isIOS()) {
           h +=
-            '<div class="steps"><div class="step"><i>1</i><div>주소창 아래 <b>공유 버튼</b>을 누른다 <span class="ico">􀈂</span></div></div>' +
-            '<div class="step"><i>2</i><div>목록을 내려 <b>“홈 화면에 추가”</b>를 누른다</div></div>' +
-            '<div class="step"><i>3</i><div>오른쪽 위 <b>추가</b>를 누르면 끝</div></div></div>' +
-            '<div class="hint"><b>Safari 로 열어야 한다.</b> 크롬·네이버 앱에서는 이 메뉴가 없어.</div>';
+            '<div class="steps"><div class="step"><i>1</i><div>주소창 아래 <b>공유 버튼</b>을 눌러주세요 <span class="ico">􀈂</span></div></div>' +
+            '<div class="step"><i>2</i><div>목록을 내려 <b>“홈 화면에 추가”</b>를 눌러주세요</div></div>' +
+            '<div class="step"><i>3</i><div>오른쪽 위 <b>추가</b>를 누르시면 끝이에요</div></div></div>' +
+            '<div class="hint"><b>Safari 로 열어주세요.</b> 크롬·네이버 앱에서는 이 메뉴가 없어요.</div>';
           return h;
         }
         h +=
-          '<div class="steps"><div class="step"><i>1</i><div>주소창 오른쪽 <b>⋮ 메뉴</b>를 누른다</div></div>' +
-          '<div class="step"><i>2</i><div><b>“앱 설치”</b> 또는 <b>“홈 화면에 추가”</b>를 고른다</div></div>' +
-          '<div class="step"><i>3</i><div><b>설치</b>를 누르면 끝</div></div></div>' +
-          '<div class="hint">메뉴가 안 보이면 페이지를 한 번 새로고침해봐.</div>';
+          '<div class="steps"><div class="step"><i>1</i><div>주소창 오른쪽 <b>⋮ 메뉴</b>를 눌러주세요</div></div>' +
+          '<div class="step"><i>2</i><div><b>“앱 설치”</b> 또는 <b>“홈 화면에 추가”</b>를 골라주세요</div></div>' +
+          '<div class="step"><i>3</i><div><b>설치</b>를 누르시면 끝이에요</div></div></div>' +
+          '<div class="hint">메뉴가 안 보이면 페이지를 한 번 새로고침해보세요.</div>';
         return h;
       }
 
@@ -2259,8 +2259,8 @@
         if (!isStandalone()) {
           h +=
             '<div class="homesec">앱으로 설치</div>' +
-            '<div class="glass gcard"><div class="installtitle">홈 화면에 두면 더 빠르다</div>' +
-            '<div class="hint" style="margin-top:2px">주소창 없이 전체 화면으로 열리고, 오프라인에서도 돌아간다.</div>' +
+            '<div class="glass gcard"><div class="installtitle">홈 화면에 두면 더 빨라요</div>' +
+            '<div class="hint" style="margin-top:2px">주소창 없이 전체 화면으로 열리고, 오프라인에서도 돌아가요.</div>' +
             installGuideHTML(true) +
             "</div>";
         }
@@ -2337,7 +2337,7 @@
 
         h +=
           '<textarea id="s-memo" class="memofld" maxlength="500" rows="3" ' +
-          'aria-label="오늘 메모" placeholder="오늘 운동은 어땠나요? 간단히 적어두면 다음에 도움이 돼.">' +
+          'aria-label="오늘 메모" placeholder="오늘 운동은 어땠나요? 간단히 적어두시면 다음에 도움이 돼요.">' +
           Gym.esc(note.memo || "") +
           "</textarea></div>";
         return h;
@@ -2386,7 +2386,7 @@
 
       function calDayDetailHTML(cal) {
         if (!state.calDay) {
-          return '<div class="empty">날짜를 누르면 그날 한 운동이 나와.</div>';
+          return '<div class="empty">날짜를 누르면 그날 하신 운동이 나와요.</div>';
         }
         var day = cal[state.calDay];
 
@@ -2505,7 +2505,7 @@
         var series = Gym.seriesByName(logs, exerciseName, metric);
         var names = Object.keys(series).sort();
         if (!names.length) {
-          return '<div class="empty">아직 기록이 없어.<br>종목을 눌러서 중량과 반복수를 입력하면<br>여기에 그래프가 쌓여.</div>';
+          return '<div class="empty">아직 기록이 없어요.<br>종목을 눌러서 중량과 반복수를 입력하시면<br>여기에 그래프가 쌓여요.</div>';
         }
         if (!state.chartEx || names.indexOf(state.chartEx) < 0)
           state.chartEx = names[0];
@@ -2626,29 +2626,29 @@
       function renderTips() {
         var h =
           '<div class="dayhead"><div class="num">TIPS</div><h2>훈련 팁</h2>' +
-          "<p>헷갈릴 때 열어보는 기준들</p></div>";
+          "<p>헷갈릴 때 열어보시는 기준들</p></div>";
 
         h += '<div class="sechead">중량 올리는 기준</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올린다.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 굴려.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게.</div></div>' +
-          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마.</b> 회복 덜 되면 반복수가 떨어져 총볼륨이 줄어.</div></div>' +
-          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마.</b> 12회에 2개 남는 지점을 직접 찾아.</div></div>' +
-          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰어.</b> 근육통과 관절 통증은 달라.</div></div>' +
+          '<div class="rule"><i>01</i><div><b>목표 반복수 상단을 전 세트에서 채우면 올려주세요.</b> 벤치·스쿼트·데드는 2.5kg, 덤벨은 한 단계 위로 올려주세요.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>어깨 서킷은 15회가 쉬워지면 20회 → 6kg 15회</b> 순으로 올려주세요.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>단백질 하루 135-165g.</b> 감량은 주당 0.5kg 내외로 완만하게 가주세요.</div></div>' +
+          '<div class="rule"><i>04</i><div><b>큰 종목의 2-3분 휴식은 줄이지 마세요.</b> 회복이 덜 되면 반복수가 떨어져 총볼륨이 줄어들어요.</div></div>' +
+          '<div class="rule"><i>05</i><div><b>기계 종목은 표시 중량을 믿지 마세요.</b> 12회에 2개 남는 지점을 직접 찾아주세요.</div></div>' +
+          '<div class="rule"><i>06</i><div><b>어깨 앞·위쪽이 시큰하면 그날 서킷은 건너뛰세요.</b> 근육통과 관절 통증은 다릅니다.</div></div>' +
           "</div>";
 
         h +=
           '<div class="sechead">세트 · 휴식</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>큰 종목은 2-3분, 작은 종목은 60초.</b> 휴식이 짧으면 반복수가 떨어져 총볼륨이 준다.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>마지막 세트는 2개 남기고 멈춘다.</b> 매 세트 실패까지 가면 다음 날 회복이 안 된다.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>세트가 모자라면 ＋ 세트로 늘린다.</b> 직전 세트의 중량·반복수를 그대로 복사해준다.</div></div>' +
+          '<div class="rule"><i>01</i><div><b>큰 종목은 2-3분, 작은 종목은 60초로 쉬어주세요.</b> 휴식이 짧으면 반복수가 떨어져 총볼륨이 줄어요.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>마지막 세트는 2개 남기고 멈춰주세요.</b> 매 세트 실패까지 가면 다음 날 회복이 안 돼요.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>세트가 모자라면 ＋ 세트로 늘려주세요.</b> 직전 세트의 중량·반복수를 그대로 복사해드려요.</div></div>' +
           "</div>";
 
         h +=
           '<div class="sechead">기록 습관</div><div class="addbox">' +
-          '<div class="rule"><i>01</i><div><b>세트 끝나자마자 적는다.</b> 나중에 몰아 적으면 반드시 틀린다.</div></div>' +
-          '<div class="rule"><i>02</i><div><b>못 적었으면 날짜를 되돌려 적는다.</b> 운동 화면 위쪽 날짜 바에서 옮길 수 있다.</div></div>' +
-          '<div class="rule"><i>03</i><div><b>가끔 설정에서 내보내기.</b> 기록은 이 브라우저에만 있다.</div></div>' +
+          '<div class="rule"><i>01</i><div><b>세트 끝나자마자 적어주세요.</b> 나중에 몰아 적으면 반드시 틀려요.</div></div>' +
+          '<div class="rule"><i>02</i><div><b>못 적었으면 날짜를 되돌려 적어주세요.</b> 운동 화면 위쪽 날짜 바에서 옮기실 수 있어요.</div></div>' +
+          '<div class="rule"><i>03</i><div><b>가끔 설정에서 내보내주세요.</b> 기록은 이 브라우저에만 있어요.</div></div>' +
           "</div>";
         return h;
       }
@@ -2693,7 +2693,7 @@
           '<div class="sechead">화면</div>' +
           '<div class="addbox">' +
           themeSegHTML() +
-          '<div class="hint">시스템으로 두면 기기 설정을 따라간다.</div>' +
+          '<div class="hint">시스템으로 두면 기기 설정을 따라가요.</div>' +
           "</div>";
 
         h +=
@@ -2708,7 +2708,7 @@
           'min="1" max="100" value="' +
           barKg() +
           '"><span>kg</span></div></div>' +
-          '<div class="hint">원판 계산에 쓴다. 여성용 봉은 15kg, EZ바는 보통 7-10kg.</div>' +
+          '<div class="hint">원판 계산에 써요. 여성용 봉은 15kg, EZ바는 보통 7-10kg 예요.</div>' +
           "</div>";
 
         h +=
@@ -2720,8 +2720,8 @@
           '<button class="btn" id="s-update">업데이트 확인</button>' +
           '<button class="btn warnbtn" id="s-purge">캐시 비우고 새로고침</button>' +
           "</div>" +
-          '<div class="hint">새 버전이 안 보이면 <b>캐시 비우고 새로고침</b>을 눌러.<br>' +
-          "앱 파일만 지우고 <b>운동 기록은 그대로 남는다.</b></div>" +
+          '<div class="hint">새 버전이 안 보이면 <b>캐시 비우고 새로고침</b>을 눌러주세요.<br>' +
+          "앱 파일만 지우고 <b>운동 기록은 그대로 남아요.</b></div>" +
           "</div>";
 
         h +=
@@ -2823,26 +2823,26 @@
 
       function checkUpdate() {
         if (!("serviceWorker" in navigator)) {
-          notify("이 브라우저는 서비스워커를 지원하지 않아.");
+          notify("이 브라우저는 서비스워커를 지원하지 않아요.");
           return;
         }
         navigator.serviceWorker
           .getRegistration()
           .then(function (reg) {
             if (!reg) {
-              notify("서비스워커가 등록돼 있지 않아. http/https 로 열어야 등록돼.");
+              notify("서비스워커가 등록돼 있지 않아요. http/https 로 열어야 등록돼요.");
               return null;
             }
             return reg.update().then(function () {
               if (reg.installing || reg.waiting) {
-                notify("새 버전을 받았어. 새로고침하면 적용돼.", "good");
+                notify("새 버전을 받았어요. 새로고침하면 적용돼요.", "good");
               } else {
-                notify("이미 최신이야.", "good");
+                notify("이미 최신이에요.", "good");
               }
             });
           })
           .catch(function () {
-            notify("업데이트를 확인하지 못했어. 네트워크를 확인해줘.");
+            notify("업데이트를 확인하지 못했어요. 네트워크를 확인해주세요.");
           });
       }
 
@@ -2850,7 +2850,7 @@
       function purgeCaches() {
         if (
           !window.confirm(
-            "앱 파일 캐시를 비우고 새로고침할까?\n운동 기록은 지워지지 않아.",
+            "앱 파일 캐시를 비우고 새로고침할까요?\n운동 기록은 지워지지 않아요.",
           )
         )
           return;
@@ -2944,9 +2944,9 @@
           setTimeout(function () {
             URL.revokeObjectURL(url);
           }, 1000);
-          notify("백업 파일을 내려받았어.", "good");
+          notify("백업 파일을 내려받았어요.", "good");
         } catch (e) {
-          notify("내보내기에 실패했어. 브라우저가 파일 저장을 막았을 수 있어.");
+          notify("내보내기에 실패했어요. 브라우저가 파일 저장을 막았을 수 있어요.");
         }
       }
 
@@ -2955,23 +2955,23 @@
         input.value = "";
         if (!f) return;
         if (f.size > MAX_BACKUP_BYTES) {
-          notify("파일이 너무 커 (5MB 초과).");
+          notify("파일이 너무 커요 (5MB 초과).");
           return;
         }
         var fr = new FileReader();
         fr.onerror = function () {
-          notify("파일을 읽지 못했어.");
+          notify("파일을 읽지 못했어요.");
         };
         fr.onload = function () {
           var parsed;
           try {
             parsed = JSON.parse(fr.result);
           } catch (e) {
-            notify("JSON 형식이 아니야.");
+            notify("JSON 형식이 아니에요.");
             return;
           }
           if (!parsed || typeof parsed !== "object") {
-            notify("백업 파일 형식이 아니야.");
+            notify("백업 파일 형식이 아니에요.");
             return;
           }
 
@@ -2984,7 +2984,7 @@
           var nLogs = Object.keys(inLogs).length;
           var nCustom = Object.keys(inCustom).length;
           if (!nLogs && !nCustom) {
-            notify("불러올 기록이 없어. 파일을 확인해줘.");
+            notify("불러올 기록이 없어요. 파일을 확인해주세요.");
             return;
           }
 
@@ -3004,14 +3004,14 @@
           saveDays();
           render();
           if (okLogs && okCustom)
-            notify("종목 " + nLogs + "개의 기록을 합쳤어.", "good");
+            notify("종목 " + nLogs + "개의 기록을 합쳤어요.", "good");
         };
         fr.readAsText(f);
       }
 
       function resetAll() {
         if (
-          !window.confirm("모든 기록과 추가한 종목을 지울까? 되돌릴 수 없어.")
+          !window.confirm("모든 기록과 추가한 종목을 지울까요? 되돌릴 수 없어요.")
         )
           return;
         logs = {};
@@ -3030,7 +3030,7 @@
         saveOrder();
         state.day = DAYS[0].id;
         render();
-        notify("전체 삭제했어.", "good");
+        notify("전체 삭제했어요.", "good");
       }
 
       /* ============ events ============ */
@@ -3045,7 +3045,7 @@
       function setLogDate(key) {
         if (!Gym.isDateKey(key)) return false;
         if (Gym.dayDiff(key, Gym.todayKey()) < 0) {
-          notify("앞날에는 기록할 수 없어.");
+          notify("앞날에는 기록할 수 없어요.");
           return false;
         }
         state.logDate = key;
@@ -3124,7 +3124,7 @@
           .trim()
           .slice(0, MAX_NAME);
         if (!name) {
-          notify("종목을 검색해서 고르거나 이름을 직접 적어줘.");
+          notify("종목을 검색해서 고르시거나 이름을 직접 적어주세요.");
           return;
         }
 
@@ -3139,14 +3139,14 @@
         }
         var id = existing || (pick ? pick.id : "my-" + Date.now());
         if (dayHasExercise(dayId, name, id)) {
-          notify(name + " 은(는) 이 날에 이미 있어.");
+          notify(name + " 은(는) 이 날에 이미 있어요.");
           return;
         }
         /* 카탈로그에 없는 이름이면 부위를 받아 내 목록에 넣는다.
            안 그러면 다음에 또 검색해도 안 나와서 매번 다시 쳐야 한다. */
         var isNew = !pick && !existing && !libById(id);
         if (isNew && !state.cat) {
-          notify("새 종목은 부위를 먼저 골라줘. 위의 부위 칩에서 고르면 돼.");
+          notify("새 종목은 부위를 먼저 골라주세요. 위의 부위 칩에서 고르시면 돼요.");
           return;
         }
 
@@ -3203,11 +3203,11 @@
         state.q = "";
         saveCustom();
         render();
-        notify(name + " 추가했어.", "good");
+        notify(name + " 을(를) 추가했어요.", "good");
       }
 
       function deleteExercise(dayId, exId) {
-        if (!window.confirm("이 종목과 지금까지의 기록을 함께 지울까?")) return;
+        if (!window.confirm("이 종목과 지금까지의 기록을 함께 지울까요?")) return;
         custom[dayId] = (custom[dayId] || []).filter(function (e) {
           return e.id !== exId;
         });
@@ -3256,7 +3256,7 @@
         var date = recordDate();
         var count = setCountFor(ex, date);
         if (count >= MAX_SETS) {
-          notify("세트는 " + MAX_SETS + "개까지야.");
+          notify("세트는 " + MAX_SETS + "개까지예요.");
           return;
         }
         var e = ensureEntry(exId, date, count);
@@ -3287,7 +3287,7 @@
       function fillFromPrev(exId) {
         var prev = Gym.prevEntry(logs, exId, recordDate());
         if (!prev) {
-          notify("불러올 지난 기록이 없어.");
+          notify("불러올 지난 기록이 없어요.");
           return;
         }
         var ex = findExercise(exId);
@@ -3484,7 +3484,7 @@
         }
       });
 
-      /* 검색창에서 Enter 는 첫 번째 후보를 고른다. */
+      /* 검색창에서 Enter 는 첫 번째 후보를 골라주세요. */
       document.addEventListener("keydown", function (ev) {
         if (ev.target.id === "a-name" && ev.key === "Enter") {
           ev.preventDefault();

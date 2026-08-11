@@ -691,7 +691,7 @@
   function chartSVG(series) {
     var W = 320, H = 170, PL = 38, PR = 10, PT = 12, PB = 26;
     if (!series || series.length < 2) {
-      return '<div class="empty">기록이 2회 이상 쌓이면<br>그래프가 나와.</div>';
+      return '<div class="empty">기록이 2회 이상 쌓이면<br>그래프가 나와요.</div>';
     }
     var vals = series.map(function (p) { return p.v; });
     var mn = Math.min.apply(null, vals);
