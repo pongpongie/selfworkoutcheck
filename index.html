@@ -138,6 +138,25 @@
       .hero .go:hover { background: var(--accent-hover); }
       .hero .go:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
 
+      .empty-session { text-align: center; padding: var(--gap-xl) var(--pad-container); }
+      .empty-session h3 {
+        font-size: var(--t-headline); font-weight: var(--w-semibold);
+        letter-spacing: -0.4px; margin-bottom: 6px;
+      }
+      .empty-session p { font-size: var(--t-footnote); color: var(--text-3); }
+      .empty-session .ptools { justify-content: center; margin-top: var(--gap-md); }
+      .rlist.plain { padding: 0; border: 0; background: none; box-shadow: none; backdrop-filter: none; }
+      .ritem-row { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+      .ritem-row:last-child { border-bottom: 0; }
+      .ritem-row .ritem { border-bottom: 0; }
+      .redit {
+        flex: none; width: 40px; height: 40px; margin-left: 4px;
+        border: 0; border-radius: var(--radius-button);
+        background: transparent; color: var(--text-3);
+        font-size: var(--t-footnote); cursor: pointer;
+      }
+      .redit:hover { color: var(--accent); background: var(--accent-soft); }
+      .redit:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
       .homesec { font-size: var(--t-footnote); font-weight: var(--w-medium); color: var(--text-3); margin: var(--gap-lg) 2px var(--gap-sm); }
       .gcard { --radius-glass: 18px; padding: var(--gap-md); }
 
@@ -696,7 +715,8 @@
         K_LIB = "gym.mylib.v1",
         K_ROUTINES = "gym.routines.v1",
         K_PREFS = "gym.prefs.v1",
-        K_ORDER = "gym.order.v1";
+        K_ORDER = "gym.order.v1",
+        K_SESSION = "gym.session.v1";
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
@@ -753,6 +773,7 @@
       var routines = Store.get(K_ROUTINES, []); // 내가 만든 루틴(요일)
       var prefs = Store.get(K_PREFS, {}); // { bar: 20 }
       var order = Store.get(K_ORDER, {}); // { dayId: [종목ID 순서] }
+      var sessions = Store.get(K_SESSION, {}); // { 날짜: [종목ID] } 그날 할 종목
 
       function today() {
         return Gym.todayKey();
@@ -797,6 +818,10 @@
 
       function saveOrder() {
         Store.set(K_ORDER, order);
+      }
+
+      function saveSessions() {
+        Store.set(K_SESSION, sessions);
       }
 
       function saveMyLib() {
@@ -1394,6 +1419,9 @@
         q: "",
         cat: null,
         pick: null,
+        /* 운동 화면 하단 패널 — null | "add" | "routines" */
+        panel: null,
+        editRoutine: null,
         /* 그래프 지표 — 최고 중량 / 추정 1RM / 볼륨 */
         metric: "top",
         /* 종목을 추가할 그룹 — 웜업인지 메인인지 */
@@ -1434,6 +1462,31 @@
         for (var i = 0; i < all.length; i++)
           if (all[i].id === id) return all[i];
         return null;
+      }
+
+      /* 종목 정보를 어디서든 찾는다 — 루틴 · 내가 넣은 것 · 카탈로그 · 내 종목. */
+      function resolveExercise(id) {
+        var inRoutine = findExercise(id);
+        if (inRoutine) return inRoutine;
+        var lib = GymExercises.BY_ID[id] || libById(id);
+        if (lib) return lib;
+        /* 어디에도 없는 id (지운 종목의 옛 기록 등) 도 카드로는 보여준다. */
+        return {
+          id: id, name: id, load: 0, unit: "kg",
+          sets: 3, reps: "", rest: 60,
+        };
+      }
+
+      /* 그날 화면에 띄울 종목 목록. 저장된 게 없으면 기록에서 역산한다. */
+      function sessionIds(date) {
+        if (sessions[date] && sessions[date].length) return sessions[date].slice();
+        return Gym.sessionFromLogs(logs, date);
+      }
+
+      function setSession(date, ids) {
+        if (ids && ids.length) sessions[date] = ids;
+        else delete sessions[date];
+        saveSessions();
       }
 
       /* 세트 수는 사용자가 바꿨으면 그 값을, 아니면 루틴 기본값을 쓴다. */
@@ -1480,10 +1533,9 @@
       /* 상단 칩은 운동 구획의 2차 내비게이션이다. 다른 구획에서는 감춘다. */
       function renderChips() {
         var box = document.getElementById("chips");
-        if (state.section !== "workout") {
-          box.innerHTML = "";
-          return;
-        }
+        /* 운동 탭이 날짜 기준이 되면서 상단 루틴 칩은 의미가 없어졌다. */
+        box.innerHTML = "";
+        if (true) return;
         var h = "";
         allDays().forEach(function (d) {
           h +=
@@ -1692,6 +1744,8 @@
             Gym.esc(ex.id) +
             '" data-day="' +
             Gym.esc(day.id) +
+            '" data-session="' +
+            (day.session ? "1" : "0") +
             '">삭제</button>';
         h += "</div>";
         if (ex.note) h += '<div class="hint">' + Gym.esc(ex.note) + "</div>";
@@ -1841,6 +1895,46 @@
         );
       }
 
+      /* 루틴의 종목을 그날 세션에 붙인다. 이미 있는 건 건너뛴다. */
+      function loadRoutine(routineId, date) {
+        var day = allDays().filter(function (d) {
+          return d.id === routineId;
+        })[0];
+        if (!day) return;
+        var added2 = custom[routineId] || [];
+        var warm = day.freeform
+          ? added2.filter(function (e) { return e.grp === "warm"; })
+          : WARM.concat(added2.filter(function (e) { return e.grp === "warm"; }));
+        var main = applyOrder(
+          routineId,
+          day.main.concat(added2.filter(function (e) { return e.grp !== "warm"; })),
+        );
+        /* 웜업 → 메인 → 서킷. 루틴 화면에서 보이는 순서 그대로 담는다. */
+        var incoming = warm
+          .concat(main, day.freeform ? [] : CIRCUIT)
+          .map(function (e) { return e.id; });
+
+        var cur = sessionIds(date);
+        var seen = {};
+        cur.forEach(function (id) { seen[id] = 1; });
+        var added = 0;
+        incoming.forEach(function (id) {
+          if (seen[id]) return;
+          seen[id] = 1;
+          cur.push(id);
+          added += 1;
+        });
+        setSession(date, cur);
+        state.panel = null;
+        render();
+        notify(
+          added
+            ? day.name + " 에서 " + added + "종목을 불러왔어요."
+            : day.name + " 의 종목은 이미 다 있어요.",
+          added ? "good" : "bad",
+        );
+      }
+
       function newRoutine() {
         var name = (window.prompt("루틴 이름을 지어주세요 (예: 팔 집중, 홈트)") || "").trim();
         if (!name) return;
@@ -1936,8 +2030,10 @@
           '" aria-label="휴식 초" placeholder="휴식 초" value="' +
           (p ? p.rest : "") +
           '">' +
-          '</div><div class="ptools"><button class="btn" id="a-go" data-day="' +
+          '</div><div class="ptools"><button class="btn primary" id="a-go" data-day="' +
           Gym.esc(day.id) +
+          '" data-session="' +
+          (day.session ? "1" : "0") +
           '">추가하기</button></div></div>'
         );
       }
@@ -1976,6 +2072,11 @@
             '<button class="btn" id="date-today">오늘로</button></div>';
         }
         return h;
+      }
+
+      /* 세션은 sessions[date] 배열 순서를 그대로 쓴다. */
+      function applySessionOrder(date, ids) {
+        return ids;
       }
 
       /* 저장된 순서가 있으면 그대로, 없으면 원래 순서. 새로 추가된 종목은 뒤로. */
@@ -2017,83 +2118,6 @@
         order[dayId] = ids;
         saveOrder();
         render();
-      }
-
-      function renderDay(day) {
-        var h =
-          '<div class="dayhead"><div class="num">' +
-          Gym.esc(day.num) +
-          "</div><h2>" +
-          Gym.esc(day.name) +
-          "</h2><p>" +
-          Gym.esc(day.tag) +
-          "</p>" +
-          routineToolsHTML(day) +
-          "</div>";
-
-        h += dateBarHTML();
-
-        var added = custom[day.id] || [];
-        var addedWarm = added.filter(function (e) {
-          return e.grp === "warm";
-        });
-        var addedMain = added.filter(function (e) {
-          return e.grp !== "warm";
-        });
-        var warmBase = day.freeform ? [] : WARM;
-
-        if (warmBase.length || addedWarm.length) {
-          h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
-          warmBase.forEach(function (ex) {
-            h += exCard(ex, day, false);
-          });
-          addedWarm.forEach(function (ex) {
-            h += exCard(ex, day, true);
-          });
-          h += "</div>";
-        }
-
-        h +=
-          '<div class="grp main"><div class="grp-label">' +
-          (day.freeform ? "오늘 한 것" : "MAIN") +
-          "</div>";
-        var customIds = {};
-        addedMain.forEach(function (e) {
-          customIds[e.id] = 1;
-        });
-        applyOrder(day.id, day.main.concat(addedMain)).forEach(function (ex) {
-          h += exCard(ex, day, !!customIds[ex.id]);
-        });
-        if (!day.main.length && !addedMain.length) {
-          h +=
-            '<div class="empty">아직 넣은 종목이 없어요.<br>아래에서 검색해서 추가해주세요.</div>';
-        }
-        h += "</div>";
-
-        if (!day.freeform) {
-          h +=
-            '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트 · 3-4라운드 · 라운드 사이 60초</div>';
-          CIRCUIT.forEach(function (ex) {
-            h += exCard(ex, day, false);
-          });
-          h += "</div>";
-        }
-
-        h += addBoxHTML(day);
-
-        h +=
-          '<div class="sechead">' +
-          Gym.esc(Gym.shortDate(recordDate())) +
-          " 요약</div>";
-        h += daySummaryHTML(recordDate(), null);
-
-
-
-        if (!Store.ok) {
-          h +=
-            '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아요. 직접 호스팅하시면 정상 저장돼요.</div>';
-        }
-        return h;
       }
 
       /* ---------- 설치 안내 ---------- */
@@ -2163,6 +2187,171 @@
           installPrompt = null;
           render();
         });
+      }
+
+      /* ---------- 운동: 그날의 기록 ---------- */
+      /* 탭은 "루틴" 인데 내용은 "그날 기록" 이라 두 개념이 섞여 있었다.
+         이제 화면의 주인공은 날짜다. 루틴은 종목을 채워 넣는 도구로 물러난다. */
+      function renderSession(date) {
+        var ids = applySessionOrder(date, sessionIds(date));
+        var cal = Gym.buildCalendar(logs);
+        var rec = cal[date];
+
+        var h =
+          '<div class="dayhead"><div class="num">' +
+          Gym.esc(Gym.shortDate(date).replace("/", "월 ")) +
+          "일 " +
+          Gym.esc(Gym.weekday(date)) +
+          "요일</div><h2>운동 기록</h2>" +
+          (rec
+            ? "<p>" + rec.count + "종목 · " + rec.sets + "세트 · " +
+              Gym.formatNumber(rec.volume) + "kg</p>"
+            : "<p>아직 기록이 없어요</p>") +
+          "</div>";
+
+        h += dateBarHTML();
+
+        if (!ids.length) {
+          h +=
+            '<div class="glass gcard empty-session">' +
+            "<h3>운동을 시작해볼까요?</h3>" +
+            "<p>루틴을 불러오거나 종목을 직접 추가해주세요.</p>" +
+            '<div class="ptools">' +
+            '<button class="btn primary" data-panel="routines">루틴 불러오기</button>' +
+            '<button class="btn" data-panel="add">종목 직접 추가</button>' +
+            "</div></div>";
+        } else {
+          h += '<div class="grp main">';
+          ids.forEach(function (id) {
+            h += exCard(resolveExercise(id), { id: date, session: true }, true);
+          });
+          h += "</div>";
+          h +=
+            '<div class="ptools" style="margin-top:14px">' +
+            '<button class="btn" data-panel="add">＋ 종목 추가</button>' +
+            '<button class="btn" data-panel="routines">루틴 불러오기</button>' +
+            "</div>";
+        }
+
+        if (state.panel === "routines") h += routinePickerHTML(date);
+        if (state.panel === "add") h += addBoxHTML({ id: date, session: true });
+
+        h +=
+          '<div class="sechead">' +
+          Gym.esc(Gym.shortDate(date)) +
+          " 요약</div>";
+        h += daySummaryHTML(date, cal);
+
+        if (!Store.ok) {
+          h +=
+            '<div class="warn">지금은 미리보기 환경이라 기록이 저장되지 않아요. 직접 호스팅하시면 정상 저장돼요.</div>';
+        }
+        return h;
+      }
+
+      function routinePickerHTML(date) {
+        var h =
+          '<div class="addbox"><h4>루틴 불러오기</h4>' +
+          '<div class="hint" style="margin:0 0 10px">고른 루틴의 종목이 이 날짜에 추가돼요. 이미 있는 종목은 건너뜁니다.</div>' +
+          '<div class="rlist plain">';
+        allDays().forEach(function (d) {
+          var n = routineIds(d).length;
+          h +=
+            '<button class="ritem" data-loadroutine="' +
+            Gym.esc(d.id) +
+            '"><span class="rn">' +
+            Gym.esc(
+              d.num.indexOf("DAY ") === 0
+                ? d.num.replace("DAY ", "D") + " " + d.name
+                : d.name,
+            ) +
+            '</span><span class="rd">' +
+            n +
+            "종목</span><span class=\"rc\">＋</span></button>";
+        });
+        h += "</div></div>";
+        return h;
+      }
+
+      /* ---------- 루틴 편집 ---------- */
+      function renderRoutineEdit() {
+        var day = allDays().filter(function (d) {
+          return d.id === state.editRoutine;
+        })[0];
+        if (!day) {
+          state.section = "home";
+          return renderHome();
+        }
+        var h =
+          '<div class="dayhead"><div class="num">ROUTINE</div><h2>' +
+          Gym.esc(day.name) +
+          "</h2><p>" +
+          Gym.esc(day.tag) +
+          " · 여기서 고친 구성은 다음에 불러올 때 반영돼요</p>" +
+          routineToolsHTML(day) +
+          "</div>";
+
+        var added = custom[day.id] || [];
+        var addedWarm = added.filter(function (e) { return e.grp === "warm"; });
+        var addedMain = added.filter(function (e) { return e.grp !== "warm"; });
+        var warmBase = day.freeform ? [] : WARM;
+
+        if (warmBase.length || addedWarm.length) {
+          h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
+          warmBase.forEach(function (ex) { h += exRoutineRow(ex, day, false); });
+          addedWarm.forEach(function (ex) { h += exRoutineRow(ex, day, true); });
+          h += "</div>";
+        }
+
+        var customIds = {};
+        addedMain.forEach(function (e) { customIds[e.id] = 1; });
+        h +=
+          '<div class="grp main"><div class="grp-label">' +
+          (day.freeform ? "종목" : "MAIN") +
+          "</div>";
+        var mainList = applyOrder(day.id, day.main.concat(addedMain));
+        mainList.forEach(function (ex) {
+          h += exRoutineRow(ex, day, !!customIds[ex.id]);
+        });
+        if (!mainList.length) {
+          h += '<div class="empty">아직 넣은 종목이 없어요.<br>아래에서 검색해서 추가해주세요.</div>';
+        }
+        h += "</div>";
+
+        if (!day.freeform) {
+          h += '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트</div>';
+          CIRCUIT.forEach(function (ex) { h += exRoutineRow(ex, day, false); });
+          h += "</div>";
+        }
+
+        h += addBoxHTML(day);
+        return h;
+      }
+
+      /* 루틴 편집에서는 세트 입력이 필요 없다. 구성만 보여준다. */
+      function exRoutineRow(ex, day, isCustom) {
+        var h =
+          '<div class="card"><div class="row" style="cursor:default">' +
+          '<div class="nm">' +
+          Gym.esc(ex.name) +
+          "</div>" +
+          '<div class="ld">' +
+          (ex.load ? ex.load + "<small>" + Gym.esc(ex.unit) + "</small>" : Gym.esc(ex.unit)) +
+          "</div>" +
+          '<div class="mt">' + ex.sets + "세트 × " + Gym.esc(ex.reps) + "</div>" +
+          '<div class="rt">' +
+          (ex.rest ? "휴식 " + ex.rest + "초" : "연속") +
+          "</div></div>";
+        if (isCustom || !day.freeform) {
+          h += '<div class="panel" style="display:block"><div class="ptools" style="margin:0">';
+          h +=
+            '<button class="btn" data-up="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↑</button>' +
+            '<button class="btn" data-down="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↓</button>';
+          if (isCustom)
+            h += '<button class="btn warnbtn" data-del="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">삭제</button>';
+          h += "</div></div>";
+        }
+        return h + "</div>";
       }
 
       /* ---------- 홈 ---------- */
@@ -2286,6 +2475,7 @@
           var last = routineLastDate(d);
           var r = Gym.relativeDay(last, today);
           h +=
+            '<div class="ritem-row">' +
             '<button class="ritem" data-start="' +
             Gym.esc(d.id) +
             '"><span class="rn">' +
@@ -2296,7 +2486,12 @@
             ) +
             '</span><span class="rd">' +
             (r ? Gym.esc(r) : "기록 없음") +
-            '</span><span class="rc">›</span></button>';
+            '</span><span class="rc">›</span></button>' +
+            '<button class="redit" data-editroutine="' +
+            Gym.esc(d.id) +
+            '" aria-label="' +
+            Gym.esc(d.name) +
+            ' 루틴 편집">✎</button></div>';
         });
         h += '<button class="ritem add" id="chip-new">＋ 내 루틴 만들기</button></div>';
         return h;
@@ -2917,12 +3112,10 @@
           v.innerHTML = renderCalendar();
         } else if (state.section === "stats") {
           v.innerHTML = renderStats();
+        } else if (state.section === "routine") {
+          v.innerHTML = renderRoutineEdit();
         } else {
-          var day =
-            allDays().filter(function (d) {
-              return d.id === state.day;
-            })[0] || DAYS[0];
-          v.innerHTML = renderDay(day);
+          v.innerHTML = renderSession(recordDate());
         }
         /* 상단에는 실제로 기록이 들어가는 날짜를 띄운다. 오늘이 아니면 눈에 띄게. */
         var stamp = document.getElementById("today");
@@ -2946,6 +3139,7 @@
             routines: routines,
             prefs: prefs,
             order: order,
+            sessions: sessions,
           };
           var blob = new Blob([JSON.stringify(payload, null, 2)], {
             type: "application/json",
@@ -2996,6 +3190,7 @@
           var inDays = Gym.sanitizeDays(parsed.days);
           var inLib = Gym.sanitizeLibrary(parsed.mylib);
           var inRoutines = Gym.sanitizeRoutines(parsed.routines);
+          var inSessions = Gym.sanitizeSessions(parsed.sessions);
           var inBar = parsed.prefs && parseFloat(parsed.prefs.bar);
           var nLogs = Object.keys(inLogs).length;
           var nCustom = Object.keys(inCustom).length;
@@ -3009,6 +3204,8 @@
           days = Gym.mergeDays(days, inDays);
           myLib = Gym.mergeLibrary(myLib, inLib);
           routines = Gym.mergeRoutines(routines, inRoutines);
+          sessions = Gym.mergeSessions(sessions, inSessions);
+          saveSessions();
           saveMyLib();
           saveRoutines();
           if (isFinite(inBar) && inBar > 0 && inBar <= 100) {
@@ -3036,6 +3233,7 @@
         myLib = [];
         routines = [];
         order = {};
+        sessions = {};
         state.open = {};
         state.chartEx = null;
         saveLogs();
@@ -3044,6 +3242,7 @@
         saveMyLib();
         saveRoutines();
         saveOrder();
+        saveSessions();
         state.day = DAYS[0].id;
         render();
         notify("전체 삭제했어요.", "good");
@@ -3051,7 +3250,7 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-start],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
         "#s-update,#s-purge,#do-install,#nav-settings,[data-theme-set],[data-metric],#alert";
@@ -3134,7 +3333,7 @@
         });
       }
 
-      function addExercise(dayId) {
+      function addExercise(dayId, isSession) {
         var pick = state.pick;
         var name = (pick ? pick.name : document.getElementById("a-name").value)
           .trim()
@@ -3154,8 +3353,14 @@
           if (all[ai].name === name) { existing = all[ai].id; break; }
         }
         var id = existing || (pick ? pick.id : "my-" + Date.now());
-        if (dayHasExercise(dayId, name, id)) {
-          notify(name + " 은(는) 이 날에 이미 있어요.");
+        var dup = isSession
+          ? sessionIds(dayId).indexOf(id) >= 0 ||
+            sessionIds(dayId).some(function (x) {
+              return resolveExercise(x).name === name;
+            })
+          : dayHasExercise(dayId, name, id);
+        if (dup) {
+          notify(name + " 은(는) 이미 있어요.");
           return;
         }
         /* 카탈로그에 없는 이름이면 부위를 받아 내 목록에 넣는다.
@@ -3214,12 +3419,39 @@
           saveMyLib();
         }
 
-        custom[dayId] = (custom[dayId] || []).concat([entry]);
+        if (isSession) {
+          /* 그날 한 번만 하는 종목은 루틴을 건드리지 않는다. */
+          var cur = sessionIds(dayId);
+          cur.push(id);
+          setSession(dayId, cur);
+          if (isNew || pick) {
+            /* 카탈로그·내 종목이면 메타를 기억해 다음에도 같은 값이 뜨게 한다 */
+          }
+        } else {
+          custom[dayId] = (custom[dayId] || []).concat([entry]);
+          saveCustom();
+        }
         state.pick = null;
         state.q = "";
-        saveCustom();
+        state.panel = null;
         render();
         notify(name + " 을(를) 추가했어요.", "good");
+      }
+
+      function removeFromSession(date, exId) {
+        var name = resolveExercise(exId).name;
+        if (!window.confirm(name + " 을(를) 이 날 기록에서 뺄까요?\n입력한 세트도 함께 지워져요.")) return;
+        setSession(
+          date,
+          sessionIds(date).filter(function (id) { return id !== exId; }),
+        );
+        /* 그날 기록만 지운다. 다른 날짜의 같은 종목 기록은 남는다. */
+        if (logs[exId]) {
+          logs[exId] = logs[exId].filter(function (e) { return e.date !== date; });
+          if (!logs[exId].length) delete logs[exId];
+          saveLogs();
+        }
+        render();
       }
 
       function deleteExercise(dayId, exId) {
@@ -3328,11 +3560,28 @@
           return;
         }
 
-        if (t.dataset.start) {
-          state.day = t.dataset.start;
-          state.section = "workout";
+        if (t.dataset.panel) {
+          state.panel = state.panel === t.dataset.panel ? null : t.dataset.panel;
+          render();
+          return;
+        }
+        if (t.dataset.loadroutine) {
+          loadRoutine(t.dataset.loadroutine, recordDate());
+          return;
+        }
+        if (t.dataset.editroutine) {
+          state.editRoutine = t.dataset.editroutine;
+          state.section = "routine";
           window.scrollTo(0, 0);
           render();
+          return;
+        }
+        if (t.dataset.start) {
+          /* 홈에서 고른 루틴은 오늘 기록에 종목을 채워 넣고 운동 탭으로 간다. */
+          state.section = "workout";
+          state.panel = null;
+          window.scrollTo(0, 0);
+          loadRoutine(t.dataset.start, recordDate());
           return;
         }
         if (t.dataset.section) {
@@ -3420,7 +3669,9 @@
           return;
         }
         if (t.dataset.del) {
-          deleteExercise(t.dataset.day, t.dataset.del);
+          if (t.dataset.session === "1")
+            removeFromSession(t.dataset.day, t.dataset.del);
+          else deleteExercise(t.dataset.day, t.dataset.del);
           return;
         }
 
@@ -3478,7 +3729,7 @@
         }
 
         if (t.id === "a-go") {
-          addExercise(t.dataset.day);
+          addExercise(t.dataset.day, t.dataset.session === "1");
           return;
         }
         if (t.id === "d-export") {

@@ -420,6 +420,54 @@
     return out.slice(0, MAX_ROUTINES);
   }
 
+  var MAX_SESSION = 60;
+
+  /* 그날 무엇을 하는지 = 종목 id 목록. 기록(logs)과 별개로 둔다.
+     루틴을 불러오면 여기에 쌓이고, 아직 값을 안 넣은 종목도 카드로 보인다. */
+  function sanitizeSessions(raw) {
+    var out = {};
+    if (!raw || typeof raw !== 'object') return out;
+    Object.keys(raw).forEach(function (k) {
+      if (!isDateKey(k)) return;
+      var arr = raw[k];
+      if (!Array.isArray(arr)) return;
+      var seen = {};
+      var ids = [];
+      arr.slice(0, MAX_SESSION).forEach(function (id) {
+        if (typeof id !== 'string' || !id) return;
+        var v = id.slice(0, MAX_NAME);
+        if (seen[v]) return;
+        seen[v] = 1;
+        ids.push(v);
+      });
+      if (ids.length) out[k] = ids;
+    });
+    return out;
+  }
+
+  function mergeSessions(base, incoming) {
+    var out = {};
+    Object.keys(base || {}).forEach(function (k) { out[k] = (base[k] || []).slice(); });
+    Object.keys(incoming || {}).forEach(function (k) { out[k] = (incoming[k] || []).slice(); });
+    return out;
+  }
+
+  /* 세션 목록이 없는 날짜는 기록에서 역산한다 — 예전 데이터도 그대로 보이게. */
+  function sessionFromLogs(logs, date) {
+    var ids = [];
+    Object.keys(logs || {}).forEach(function (id) {
+      var arr = logs[id];
+      if (!Array.isArray(arr)) return;
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i] && arr[i].date === date && !isEmptyEntry(arr[i])) {
+          ids.push(id);
+          return;
+        }
+      }
+    });
+    return ids;
+  }
+
   /* 같은 (종목, 날짜) 는 들여온 쪽이 이긴다. 새 객체를 돌려준다. */
   function mergeLogs(base, incoming) {
     var out = {};
@@ -776,6 +824,9 @@
     formatBytes: formatBytes,
     sanitizeLibrary: sanitizeLibrary,
     mergeLibrary: mergeLibrary,
+    sanitizeSessions: sanitizeSessions,
+    mergeSessions: mergeSessions,
+    sessionFromLogs: sessionFromLogs,
     sanitizeRoutines: sanitizeRoutines,
     mergeRoutines: mergeRoutines,
     estimate1RM: estimate1RM,

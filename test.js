@@ -737,14 +737,16 @@ describe('index.html 무결성', function(){
 
   // 라우팅·핸들러가 부르는 함수는 반드시 정의돼 있어야 한다
   var required = [
-    'render', 'renderDay', 'renderChips', 'renderNav', 'renderCalendar',
+    'render', 'renderSession', 'renderRoutineEdit', 'renderChips', 'renderNav', 'renderCalendar',
     'renderStats', 'renderTips', 'renderSettings', 'daySummaryHTML',
     'sumStatsHTML', 'refreshSummary', 'summaryDate', 'fillSettingsAsync',
     'checkUpdate', 'purgeCaches', 'applyTheme', 'setTheme', 'themeSegHTML',
     'logStats', 'storedBytes', 'addExercise', 'deleteExercise', 'addSet',
     'removeSet', 'moveExercise', 'applyOrder', 'newRoutine', 'renameRoutine',
     'deleteRoutine', 'setLogDate', 'exportData', 'importFile', 'resetAll',
-    'barKg', 'prMap', 'allDays', 'searchPool'
+    'barKg', 'prMap', 'allDays', 'searchPool', 'resolveExercise', 'sessionIds',
+    'isStandalone', 'isIOS', 'installGuideHTML', 'doInstall',
+    'setSession', 'loadRoutine', 'removeFromSession', 'routinePickerHTML'
   ];
   var missing = required.filter(function(f){
     return html.indexOf('function ' + f + '(') < 0;
