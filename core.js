@@ -75,6 +75,52 @@
 
   function weekday(key) { return WEEKDAY[parseKey(key).getDay()]; }
 
+  /* 그 날짜가 속한 주의 일~토 7일. */
+  function weekDates(key) {
+    var d = parseKey(key);
+    var s = new Date(d.getFullYear(), d.getMonth(), d.getDate() - d.getDay());
+    var out = [];
+    for (var i = 0; i < 7; i++) {
+      out.push(dateKey(new Date(s.getFullYear(), s.getMonth(), s.getDate() + i)));
+    }
+    return out;
+  }
+
+  /* 오늘부터 거슬러 올라가며 연속으로 기록이 있는 날 수.
+     오늘 아직 안 했으면 어제부터 센다 — 아침에 앱을 열었다고 연속이 끊긴 건 아니다. */
+  function streakDays(cal, todayK) {
+    if (!cal || !todayK) return 0;
+    var k = cal[todayK] ? todayK : shiftDate(todayK, -1);
+    var n = 0;
+    while (cal[k]) {
+      n += 1;
+      k = shiftDate(k, -1);
+    }
+    return n;
+  }
+
+  /* 주어진 종목들이 마지막으로 기록된 날짜. 없으면 null. */
+  function lastDateForIds(logs, ids) {
+    var best = null;
+    (ids || []).forEach(function (id) {
+      var arr = (logs && logs[id]) || [];
+      arr.forEach(function (e) {
+        if (!e || !isDateKey(e.date) || isEmptyEntry(e)) return;
+        if (best === null || e.date > best) best = e.date;
+      });
+    });
+    return best;
+  }
+
+  function relativeDay(key, todayK) {
+    if (!key) return null;
+    var d = dayDiff(key, todayK);
+    if (d < 0) return null;
+    if (d === 0) return '오늘';
+    if (d === 1) return '어제';
+    return d + '일 전';
+  }
+
   /* ---------- 원판 계산 ---------- */
 
   function loadout(total, bar) {
@@ -694,6 +740,10 @@
     shiftDate: shiftDate,
     dayDiff: dayDiff,
     weekday: weekday,
+    weekDates: weekDates,
+    streakDays: streakDays,
+    lastDateForIds: lastDateForIds,
+    relativeDay: relativeDay,
     loadout: loadout,
     platesHTML: platesHTML,
     entryFor: entryFor,

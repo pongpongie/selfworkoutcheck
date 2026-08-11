@@ -78,6 +78,54 @@ describe('shiftDate / dayDiff / weekday', function(){
   eq('40일 뒤', k, '2026-09-14');
 });
 
+/* ---------- 홈 화면 계산 ---------- */
+describe('weekDates', function(){
+  // 2026-08-11 은 화요일 → 그 주는 08-09(일) ~ 08-15(토)
+  var w = Gym.weekDates('2026-08-11');
+  eq('7일', w.length, 7);
+  eq('일요일에서 시작', w[0], '2026-08-09');
+  eq('토요일에서 끝', w[6], '2026-08-15');
+  eq('일요일을 주면 그 날이 첫날', Gym.weekDates('2026-08-09')[0], '2026-08-09');
+  eq('토요일을 줘도 같은 주', Gym.weekDates('2026-08-15')[0], '2026-08-09');
+  // 월 경계를 걸친 주
+  eq('월을 걸친 주', Gym.weekDates('2026-09-01')[0], '2026-08-30');
+});
+
+describe('streakDays', function(){
+  var cal = { '2026-08-09': {}, '2026-08-10': {}, '2026-08-11': {} };
+  eq('오늘 포함 3일 연속', Gym.streakDays(cal, '2026-08-11'), 3);
+  // 오늘 아직 안 했어도 어제까지의 연속은 살아 있다
+  eq('오늘 비어도 어제부터 센다', Gym.streakDays(cal, '2026-08-12'), 3);
+  eq('이틀 비면 0', Gym.streakDays(cal, '2026-08-13'), 0);
+  eq('중간이 비면 거기서 끊긴다',
+     Gym.streakDays({ '2026-08-08': {}, '2026-08-10': {}, '2026-08-11': {} }, '2026-08-11'), 2);
+  eq('기록이 없으면 0', Gym.streakDays({}, '2026-08-11'), 0);
+  eq('빈 입력도 안전', Gym.streakDays(null, '2026-08-11'), 0);
+});
+
+describe('lastDateForIds', function(){
+  var logs = {
+    a: [{ date: '2026-08-01', sets: [{ w: 40, r: 8 }] },
+        { date: '2026-08-05', sets: [{ w: 45, r: 8 }] }],
+    b: [{ date: '2026-08-09', sets: [{ w: 50, r: 5 }] }],
+    c: [{ date: '2026-08-20', sets: [{ w: null, r: null, done: false }] }]
+  };
+  eq('여러 종목 중 가장 최근', Gym.lastDateForIds(logs, ['a', 'b']), '2026-08-09');
+  eq('한 종목만', Gym.lastDateForIds(logs, ['a']), '2026-08-05');
+  eq('빈 기록은 세지 않는다', Gym.lastDateForIds(logs, ['c']), null);
+  eq('없는 종목은 null', Gym.lastDateForIds(logs, ['zzz']), null);
+  eq('빈 목록도 안전', Gym.lastDateForIds(logs, []), null);
+  eq('빈 입력도 안전', Gym.lastDateForIds(null, ['a']), null);
+});
+
+describe('relativeDay', function(){
+  eq('오늘', Gym.relativeDay('2026-08-11', '2026-08-11'), '오늘');
+  eq('어제', Gym.relativeDay('2026-08-10', '2026-08-11'), '어제');
+  eq('며칠 전', Gym.relativeDay('2026-08-03', '2026-08-11'), '8일 전');
+  eq('앞날은 null', Gym.relativeDay('2026-08-12', '2026-08-11'), null);
+  eq('없으면 null', Gym.relativeDay(null, '2026-08-11'), null);
+});
+
 /* ---------- 원판 계산 ---------- */
 describe('loadout', function(){
   eq('봉만이면 원판 없음', kgs(Gym.loadout(20)), []);

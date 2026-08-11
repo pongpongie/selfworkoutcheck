@@ -38,7 +38,8 @@
       * { box-sizing: border-box; margin: 0; padding: 0; }
       html { -webkit-text-size-adjust: 100%; background: var(--bg); }
       body {
-        background: var(--bg); color: var(--text);
+        /* 배경은 html 이 진다. 여기서 칠하면 body::before 앰비언트가 가려진다. */
+        background: transparent; color: var(--text);
         font-family: var(--font-ui);
         font-size: var(--t-body); line-height: var(--t-body-lh);
         padding-bottom: calc(var(--tap) + 34px + var(--safe-b));
@@ -47,10 +48,134 @@
       input, button, select, textarea { font-family: inherit; color: inherit; }
       .wrap { max-width: 720px; margin: 0 auto; padding: 0 var(--gap-md); }
 
+      /* ---------- 리퀴드 글라스 ----------
+         유리는 뒤에 뭔가 있어야 보인다. 앰비언트 블롭을 깔고 그 위에 올린다. */
+      body::before {
+        content: "";
+        position: fixed; inset: -25%; z-index: -1; pointer-events: none;
+        background:
+          radial-gradient(36% 30% at 16% 10%, var(--amb-1), transparent 70%),
+          radial-gradient(32% 28% at 86% 24%, var(--amb-2), transparent 70%),
+          radial-gradient(40% 34% at 46% 88%, var(--amb-3), transparent 72%);
+        filter: blur(40px);
+      }
+      /* 테두리 그라디언트는 배경 두 겹 + background-clip 으로 만든다.
+         border-image 는 border-radius 를 못 따라간다. */
+      .glass {
+        position: relative;
+        border: 1px solid transparent;
+        border-radius: var(--radius-glass, 18px);
+        background-image:
+          linear-gradient(var(--glass-bg), var(--glass-bg)),
+          linear-gradient(140deg, var(--glass-edge-1), var(--glass-edge-2) 42%, transparent 72%);
+        background-origin: border-box;
+        background-clip: padding-box, border-box;
+        -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+        backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+        box-shadow: var(--shadow-md);
+      }
+      /* 위쪽 모서리에 스치는 빛 */
+      .glass::after {
+        content: "";
+        position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+        background: linear-gradient(180deg, var(--glass-inner), transparent 38%);
+        opacity: 0.5;
+        -webkit-mask-image: linear-gradient(180deg, #000 0 40%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 0 40%, transparent 100%);
+      }
+      .glass > * { position: relative; z-index: 1; }
+
+      .installtitle { font-size: var(--t-footnote); font-weight: var(--w-medium); }
+      .steps { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
+      .step { display: flex; gap: 11px; font-size: var(--t-caption); line-height: 1.5; color: var(--text-2); }
+      .step i {
+        flex: none; width: 20px; height: 20px; border-radius: 50%;
+        background: var(--accent-soft); color: var(--accent);
+        font-family: var(--font-mono); font-style: normal; font-size: 11px;
+        font-weight: var(--w-medium); display: grid; place-items: center;
+      }
+      .step b { color: var(--text); font-weight: var(--w-medium); }
+      .step .ico { font-family: -apple-system, system-ui; }
+      /* ---------- home ---------- */
+      .greet { padding: var(--gap-lg) 0 var(--gap-md); display: flex; align-items: flex-end; gap: 12px; }
+      .greet h2 {
+        flex: 1; font-size: var(--t-h2); line-height: var(--t-h2-lh);
+        letter-spacing: var(--t-h2-ls); font-weight: var(--w-semibold);
+      }
+      .greet .dow { font-family: var(--font-mono); font-size: var(--t-caption); color: var(--text-3); }
+      .streak {
+        flex: none; padding: 6px 12px; border-radius: var(--radius-pill);
+        background: var(--accent-soft); color: var(--accent);
+        font-family: var(--font-mono); font-size: var(--t-caption); font-weight: var(--w-medium);
+      }
+      .hero { --radius-glass: 20px; padding: var(--pad-container); margin-bottom: var(--gap-md); }
+      .hero .kicker {
+        font-family: var(--font-mono); font-size: var(--t-small);
+        letter-spacing: 0.1em; font-weight: var(--w-medium);
+        color: var(--accent); filter: brightness(1.35);
+      }
+      .hero h3 {
+        font-size: var(--t-h3); line-height: 1.15; letter-spacing: var(--t-h3-ls);
+        font-weight: var(--w-semibold); margin: 6px 0 4px;
+      }
+      .hero .meta { font-size: var(--t-footnote); color: var(--text-2); }
+      .hero .go {
+        display: block; width: 100%; margin-top: var(--gap-md);
+        min-height: var(--tap); border: 0; border-radius: var(--radius-button);
+        background: var(--accent); color: var(--text-on-accent);
+        font-size: var(--t-body); font-weight: var(--w-semibold); cursor: pointer;
+        box-shadow: 0 6px 18px var(--accent-soft);
+      }
+      .hero .go:hover { background: var(--accent-hover); }
+      .hero .go:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+      .homesec { font-size: var(--t-footnote); font-weight: var(--w-medium); color: var(--text-3); margin: var(--gap-lg) 2px var(--gap-sm); }
+      .gcard { --radius-glass: 18px; padding: var(--gap-md); }
+
+      .todaystat { display: flex; gap: var(--gap-lg); flex-wrap: wrap; }
+      .todaystat div { display: flex; flex-direction: column; gap: 2px; }
+      .todaystat span { font-size: var(--t-small); color: var(--text-3); }
+      .todaystat b {
+        font-family: var(--font-mono); font-size: var(--t-headline);
+        font-weight: var(--w-semibold); letter-spacing: -0.5px;
+      }
+      .todaystat b i { font-style: normal; font-size: var(--t-caption); color: var(--text-3); }
+
+      .weekstrip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+      .wcell { display: flex; flex-direction: column; align-items: center; gap: 7px; }
+      .wcell span { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+      .wcell i {
+        width: 100%; aspect-ratio: 1; max-height: 34px; border-radius: 9px;
+        background: var(--surface-2); border: 1px solid transparent; font-style: normal;
+      }
+      .wcell.has i { background: var(--heat-2); }
+      .wcell.lv1 i { background: var(--heat-1); }
+      .wcell.lv3 i { background: var(--heat-3); }
+      .wcell.today i { border-color: var(--accent); }
+      .wsum {
+        margin-top: var(--gap-md); padding-top: 12px; border-top: 1px solid var(--line);
+        font-family: var(--font-mono); font-size: var(--t-caption); color: var(--text-3);
+      }
+      .wsum b { color: var(--text); font-weight: var(--w-medium); }
+
+      .rlist { --radius-glass: 18px; padding: 4px var(--gap-md); }
+      .ritem {
+        display: flex; align-items: center; gap: 12px; width: 100%;
+        padding: 14px 0; border: 0; border-bottom: 1px solid var(--line);
+        background: transparent; text-align: left; cursor: pointer; color: var(--text);
+      }
+      .ritem:last-child { border-bottom: 0; }
+      .ritem:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+      .ritem .rn { flex: 1; font-size: var(--t-footnote); font-weight: var(--w-medium); }
+      .ritem .rd { font-family: var(--font-mono); font-size: var(--t-small); color: var(--text-3); }
+      .ritem .rc { color: var(--text-3); font-size: var(--t-body); }
+      .ritem.add { color: var(--accent); font-weight: var(--w-medium); font-size: var(--t-footnote); }
+
       /* ---------- app bar ---------- */
       .appbar {
         position: sticky; top: 0; z-index: 40;
         background: var(--nav-bg);
+        border-bottom: 1px solid var(--line);
         -webkit-backdrop-filter: saturate(180%) blur(20px);
         backdrop-filter: saturate(180%) blur(20px);
         border-bottom: 1px solid var(--line);
@@ -511,6 +636,12 @@
     </div>
 
     <nav class="bottomnav" aria-label="주 메뉴">
+      <button class="navitem" data-section="home" aria-label="홈">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"></path>
+        </svg>
+        홈
+      </button>
       <button class="navitem" data-section="workout" aria-label="운동">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M6.5 6.5v11M17.5 6.5v11M3.5 9.5v5M20.5 9.5v5M6.5 12h11"></path>
@@ -1231,11 +1362,11 @@
       /* ============ render ============ */
       var now = new Date();
       var THEME_KEY = "gym.theme.v1";
-      var SECTIONS = ["workout", "records", "stats", "settings"];
+      var SECTIONS = ["home", "workout", "records", "stats", "settings"];
 
       var state = {
         /* 하단 탭이 고르는 큰 구획 */
-        section: "workout",
+        section: "home",
         /* 운동 구획 안에서 고른 요일 */
         day: "d1",
         open: {},
@@ -1948,6 +2079,212 @@
         return h;
       }
 
+      /* ---------- 설치 안내 ---------- */
+      var installPrompt = null;
+
+      function isStandalone() {
+        return (
+          window.matchMedia("(display-mode: standalone)").matches ||
+          navigator.standalone === true
+        );
+      }
+
+      function isIOS() {
+        return (
+          /iP(hone|od|ad)/.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+        );
+      }
+
+      /* Chrome·Edge 계열은 브라우저가 설치 시점을 정해 이 이벤트를 준다.
+         이걸 잡아두면 우리가 원할 때 설치창을 띄울 수 있다. */
+      window.addEventListener("beforeinstallprompt", function (e) {
+        e.preventDefault();
+        installPrompt = e;
+        if (state.section === "home" || state.section === "settings") render();
+      });
+
+      window.addEventListener("appinstalled", function () {
+        installPrompt = null;
+        notify("설치했어. 이제 홈 화면에서 바로 열 수 있어.", "good");
+        render();
+      });
+
+      function installGuideHTML(compact) {
+        if (isStandalone()) {
+          return compact
+            ? ""
+            : '<div class="hint">이미 홈 화면 앱으로 실행 중이야.</div>';
+        }
+        var h = "";
+        if (installPrompt) {
+          h +=
+            '<div class="hint">브라우저가 설치를 지원해. 한 번 누르면 끝나.</div>' +
+            '<div class="ptools"><button class="btn primary" id="do-install">앱 설치하기</button></div>';
+          return h;
+        }
+        if (isIOS()) {
+          h +=
+            '<div class="steps"><div class="step"><i>1</i><div>주소창 아래 <b>공유 버튼</b>을 누른다 <span class="ico">􀈂</span></div></div>' +
+            '<div class="step"><i>2</i><div>목록을 내려 <b>“홈 화면에 추가”</b>를 누른다</div></div>' +
+            '<div class="step"><i>3</i><div>오른쪽 위 <b>추가</b>를 누르면 끝</div></div></div>' +
+            '<div class="hint"><b>Safari 로 열어야 한다.</b> 크롬·네이버 앱에서는 이 메뉴가 없어.</div>';
+          return h;
+        }
+        h +=
+          '<div class="steps"><div class="step"><i>1</i><div>주소창 오른쪽 <b>⋮ 메뉴</b>를 누른다</div></div>' +
+          '<div class="step"><i>2</i><div><b>“앱 설치”</b> 또는 <b>“홈 화면에 추가”</b>를 고른다</div></div>' +
+          '<div class="step"><i>3</i><div><b>설치</b>를 누르면 끝</div></div></div>' +
+          '<div class="hint">메뉴가 안 보이면 페이지를 한 번 새로고침해봐.</div>';
+        return h;
+      }
+
+      function doInstall() {
+        if (!installPrompt) return;
+        installPrompt.prompt();
+        installPrompt.userChoice.then(function () {
+          installPrompt = null;
+          render();
+        });
+      }
+
+      /* ---------- 홈 ---------- */
+      /* 루틴을 식별하는 종목만 본다. 워밍업·서킷은 모든 요일에 공유돼서
+         마지막 수행일을 재는 데 쓰면 요일 구분이 안 된다. */
+      function routineIds(day) {
+        return day.main.concat(custom[day.id] || []).map(function (e) {
+          return e.id;
+        });
+      }
+
+      function routineLastDate(day) {
+        return Gym.lastDateForIds(logs, routineIds(day));
+      }
+
+      /* 가장 오래 안 한 기본 요일을 제안한다. 한 번도 안 한 게 있으면 그게 먼저. */
+      function suggestedDay() {
+        var best = null;
+        DAYS.forEach(function (d) {
+          if (d.freeform) return;
+          var last = routineLastDate(d);
+          if (best === null) { best = { day: d, last: last }; return; }
+          if (last === null && best.last !== null) { best = { day: d, last: last }; return; }
+          if (last !== null && best.last !== null && last < best.last)
+            best = { day: d, last: last };
+        });
+        return best || { day: DAYS[0], last: null };
+      }
+
+      function weekStripHTML(cal) {
+        var today = Gym.todayKey();
+        var week = Gym.weekDates(today);
+        var max = 0;
+        week.forEach(function (k) {
+          if (cal[k] && cal[k].volume > max) max = cal[k].volume;
+        });
+        var days = 0, vol = 0, sets = 0;
+        var h = '<div class="weekstrip">';
+        week.forEach(function (k) {
+          var day = cal[k];
+          var cls = "wcell";
+          if (day) {
+            days += 1; vol += day.volume; sets += day.sets;
+            cls += " has lv" + volumeLevel(day.volume, max);
+          }
+          if (k === today) cls += " today";
+          h +=
+            '<div class="' + cls + '"><span>' + Gym.weekday(k) + "</span><i></i></div>";
+        });
+        h += "</div>";
+        h +=
+          '<div class="wsum"><b>' + days + "</b>일 · <b>" + sets +
+          "</b>세트 · <b>" + Gym.formatNumber(vol) + "</b>kg</div>";
+        return h;
+      }
+
+      function renderHome() {
+        var cal = Gym.buildCalendar(logs);
+        var today = Gym.todayKey();
+        var todayRec = cal[today];
+        var streak = Gym.streakDays(cal, today);
+
+        var h =
+          '<div class="greet"><h2>' +
+          +today.slice(5, 7) +
+          "월 " +
+          +today.slice(8, 10) +
+          '일<br><span class="dow">' +
+          Gym.esc(Gym.weekday(today)) +
+          "요일</span></h2>" +
+          (streak
+            ? '<span class="streak">연속 ' + streak + "일</span>"
+            : "") +
+          "</div>";
+
+        var sug = suggestedDay();
+        var rel = Gym.relativeDay(sug.last, today);
+        h +=
+          '<div class="glass hero">' +
+          '<div class="kicker">오늘 추천</div>' +
+          "<h3>" +
+          Gym.esc(sug.day.name) +
+          "</h3>" +
+          '<div class="meta">' +
+          sug.day.main.length +
+          "종목 · " +
+          (rel ? "마지막 " + Gym.esc(rel) : "아직 기록 없음") +
+          "</div>" +
+          '<button class="go" data-start="' +
+          Gym.esc(sug.day.id) +
+          '">시작하기</button>' +
+          "</div>";
+
+        if (todayRec) {
+          var note = days[today] || {};
+          var dur = Gym.formatDuration(note.min);
+          h +=
+            '<div class="homesec">오늘</div>' +
+            '<div class="glass gcard"><div class="todaystat">' +
+            (dur ? "<div><span>운동 시간</span><b>" + Gym.esc(dur) + "</b></div>" : "") +
+            "<div><span>종목</span><b>" + todayRec.count + "<i>개</i></b></div>" +
+            "<div><span>세트</span><b>" + todayRec.sets + "<i>세트</i></b></div>" +
+            "<div><span>볼륨</span><b>" + Gym.formatNumber(todayRec.volume) + "<i>kg</i></b></div>" +
+            "</div></div>";
+        }
+
+        h += '<div class="homesec">이번 주</div>';
+        h += '<div class="glass gcard">' + weekStripHTML(cal) + "</div>";
+
+        if (!isStandalone()) {
+          h +=
+            '<div class="homesec">앱으로 설치</div>' +
+            '<div class="glass gcard"><div class="installtitle">홈 화면에 두면 더 빠르다</div>' +
+            '<div class="hint" style="margin-top:2px">주소창 없이 전체 화면으로 열리고, 오프라인에서도 돌아간다.</div>' +
+            installGuideHTML(true) +
+            "</div>";
+        }
+
+        h += '<div class="homesec">루틴</div><div class="glass rlist">';
+        allDays().forEach(function (d) {
+          var last = routineLastDate(d);
+          var r = Gym.relativeDay(last, today);
+          h +=
+            '<button class="ritem" data-start="' +
+            Gym.esc(d.id) +
+            '"><span class="rn">' +
+            Gym.esc(
+              d.num.indexOf("DAY ") === 0
+                ? d.num.replace("DAY ", "D") + " " + d.name
+                : d.name,
+            ) +
+            '</span><span class="rd">' +
+            (r ? Gym.esc(r) : "기록 없음") +
+            '</span><span class="rc">›</span></button>';
+        });
+        h += '<button class="ritem add" id="chip-new">＋ 내 루틴 만들기</button></div>';
+        return h;
+      }
+
       /* ---------- 하루 요약 (시간 · 개수 · 볼륨 · 메모) ---------- */
       /* 기록 탭에서는 고른 날짜, 운동 탭에서는 기록 날짜를 편집한다. */
       function summaryDate() {
@@ -2359,6 +2696,11 @@
           "</div>";
 
         h +=
+          '<div class="sechead">앱 설치</div><div class="addbox">' +
+          installGuideHTML(false) +
+          "</div>";
+
+        h +=
           '<div class="sechead">바벨</div><div class="addbox">' +
           '<div class="sumrow"><label for="s-bar">봉 무게</label>' +
           '<div class="fld"><input type="number" id="s-bar" inputmode="decimal" step="0.5" ' +
@@ -2547,7 +2889,9 @@
         renderChips();
         renderNav();
         var v = document.getElementById("view");
-        if (state.section === "tips") {
+        if (state.section === "home") {
+          v.innerHTML = renderHome();
+        } else if (state.section === "tips") {
           v.innerHTML = renderTips();
         } else if (state.section === "settings") {
           v.innerHTML = renderSettings();
@@ -2693,7 +3037,7 @@
         "[data-section],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
-        "#s-update,#s-purge,#nav-settings,[data-theme-set],[data-metric],#alert";
+        "#s-update,#s-purge,#do-install,#nav-settings,[data-theme-set],[data-metric],#alert";
 
       /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
       /* 거부하면 false 를 돌려준다 — 호출한 쪽이 입력창을 되돌려야 하기 때문. */
@@ -3123,6 +3467,10 @@
         }
         if (t.id === "d-reset") {
           resetAll();
+          return;
+        }
+        if (t.id === "do-install") {
+          doInstall();
           return;
         }
         if (t.id === "s-update") {

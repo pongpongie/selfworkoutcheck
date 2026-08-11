@@ -136,7 +136,22 @@
   --heat-3: rgba(52, 199, 89, 0.62);
 
   --overlay: rgba(0, 0, 0, 0.45);
-  --nav-bg: rgba(255, 255, 255, 0.86);
+  --nav-bg: rgba(255, 255, 255, 0.72);
+
+  /* ---------- 리퀴드 글라스 ----------
+     킷의 container background / border 를 그대로 쓴다.
+     edge 는 45° 스펙큘러 — 유리 모서리에 빛이 스치는 느낌을 만든다. */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-bg-strong: rgba(255, 255, 255, 0.72);
+  --glass-edge-1: rgba(255, 255, 255, 0.95);
+  --glass-edge-2: rgba(255, 255, 255, 0.15);
+  --glass-inner: rgba(255, 255, 255, 0.7);
+  --glass-blur: 24px;
+
+  /* 유리 뒤에 깔리는 색. 이게 없으면 blur 가 할 일이 없다. */
+  --amb-1: rgba(0, 122, 255, 0.28);
+  --amb-2: rgba(88, 86, 214, 0.22);
+  --amb-3: rgba(52, 199, 89, 0.16);
 }
 
 /* ---------- 시맨틱 · 다크 ----------
@@ -170,7 +185,18 @@
     --heat-3: rgba(52, 199, 89, 0.72);
 
     --overlay: rgba(0, 0, 0, 0.65);
-    --nav-bg: rgba(6, 7, 21, 0.86);
+    --nav-bg: rgba(6, 7, 21, 0.72);
+
+    --glass-bg: rgba(255, 255, 255, 0.06);
+    --glass-bg-strong: rgba(255, 255, 255, 0.1);
+    --glass-edge-1: rgba(255, 255, 255, 0.62);
+    --glass-edge-2: rgba(255, 255, 255, 0.06);
+    --glass-inner: rgba(255, 255, 255, 0.14);
+    --glass-blur: 26px;
+
+    --amb-1: rgba(51, 149, 255, 0.5);
+    --amb-2: rgba(88, 86, 214, 0.46);
+    --amb-3: rgba(52, 199, 89, 0.2);
 
     --shadow-sm: 0 10px 10px rgba(0, 0, 0, 0.3), 0 4px 4px rgba(0, 0, 0, 0.2);
     --shadow-md: 0 15px 30px rgba(0, 0, 0, 0.45), 0 5px 10px rgba(0, 0, 0, 0.3);
@@ -207,7 +233,18 @@
   --heat-3: rgba(52, 199, 89, 0.72);
 
   --overlay: rgba(0, 0, 0, 0.65);
-  --nav-bg: rgba(6, 7, 21, 0.86);
+    --nav-bg: rgba(6, 7, 21, 0.72);
+
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-bg-strong: rgba(255, 255, 255, 0.1);
+  --glass-edge-1: rgba(255, 255, 255, 0.62);
+  --glass-edge-2: rgba(255, 255, 255, 0.06);
+  --glass-inner: rgba(255, 255, 255, 0.14);
+  --glass-blur: 26px;
+
+  --amb-1: rgba(51, 149, 255, 0.5);
+  --amb-2: rgba(88, 86, 214, 0.46);
+  --amb-3: rgba(52, 199, 89, 0.2);
 
   --shadow-sm: 0 10px 10px rgba(0, 0, 0, 0.3), 0 4px 4px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 15px 30px rgba(0, 0, 0, 0.45), 0 5px 10px rgba(0, 0, 0, 0.3);
@@ -216,4 +253,16 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
+}
+
+/* 투명 효과를 줄이도록 설정한 사용자에게는 불투명 표면을 준다. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-bg: var(--surface);
+    --glass-bg-strong: var(--surface);
+    --glass-blur: 0px;
+    --amb-1: transparent;
+    --amb-2: transparent;
+    --amb-3: transparent;
+  }
 }
