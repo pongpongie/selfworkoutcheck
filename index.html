@@ -374,6 +374,51 @@
       .plate.lt b { color: #091e42; }
       .plabel { margin-left: 9px; font-family: var(--font-mono); font-size: var(--t-small); color: var(--text-3); }
 
+      .cardtop { display: flex; align-items: stretch; }
+      .cardtop .row { flex: 1; min-width: 0; }
+      .cardcheck {
+        flex: none; width: 58px;
+        border: 0; border-left: 1px solid var(--line);
+        background: transparent; color: var(--text-3);
+        cursor: pointer; display: grid; place-items: center;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .cardcheck i {
+        width: 26px; height: 26px; border-radius: 50%;
+        border: 2px solid currentColor; font-style: normal; font-size: 13px;
+        display: grid; place-items: center;
+      }
+      .card.done .cardcheck i::after { content: "✓"; color: #fff; }
+      .cardcheck:hover { color: var(--text-2); }
+      .cardcheck:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+      .card.done .cardcheck { color: var(--success); }
+      .card.done .cardcheck i { background: var(--success); border-color: var(--success); color: #fff; }
+      /* 완료해도 카드를 흐리게 하지 않는다 — 아직 고칠 수 있어야 하니까 */
+      .card.done { opacity: 1; }
+      .card.done .nm { text-decoration-color: var(--text-3); }
+
+      .dayprog {
+        display: flex; align-items: center; gap: 12px;
+        margin-top: var(--gap-lg); padding: 12px 14px;
+        border: 1px solid var(--line); border-radius: var(--radius-container);
+        background: var(--surface);
+      }
+      .dayprog span {
+        flex: 1; font-family: var(--font-mono);
+        font-size: var(--t-caption); color: var(--text-2);
+      }
+      .dayprog.done { background: var(--success-soft); border-color: var(--success); }
+      .dayprog.done span { color: var(--text); font-weight: var(--w-medium); }
+
+      .swapbar {
+        display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+        margin-top: var(--gap-lg); padding: 12px 14px;
+        border: 1px solid var(--accent); border-radius: var(--radius-container);
+        background: var(--accent-soft);
+        font-size: var(--t-caption); color: var(--text);
+      }
+      .swapbar b { font-weight: var(--w-medium); }
+      .swapbar .btn { margin-left: auto; }
       /* ---------- panel ---------- */
       .panel { display: none; border-top: 1px solid var(--line); padding: var(--gap-md) 16px; background: var(--surface-2); }
       .card.open .panel { display: block; }
@@ -1449,6 +1494,8 @@
         /* 운동 화면 하단 패널 — null | "add" | "routines" */
         panel: null,
         editRoutine: null,
+        /* 교체 중인 종목 id */
+        swap: null,
         /* 그래프 지표 — 최고 중량 / 추정 1RM / 볼륨 */
         metric: "top",
         /* 종목을 추가할 그룹 — 웜업인지 메인인지 */
@@ -1630,6 +1677,7 @@
           '" data-ex="' +
           Gym.esc(ex.id) +
           '">';
+        h += '<div class="cardtop">';
         h +=
           '<div class="row" data-toggle="' +
           Gym.esc(ex.id) +
@@ -1678,6 +1726,16 @@
             Gym.esc(Gym.formatSetLine(used)) +
             "</b></div>";
         }
+        h += "</div>";
+        if (day.session)
+          h +=
+            '<button class="cardcheck" data-donex="' +
+            Gym.esc(ex.id) +
+            '" aria-pressed="' +
+            (allDone ? "true" : "false") +
+            '" aria-label="' +
+            Gym.esc(ex.name) +
+            ' 완료"><i></i></button>';
         h += "</div>";
 
         h += '<div class="panel">';
@@ -1765,6 +1823,11 @@
             '">휴식 ' +
             ex.rest +
             "초 시작</button>";
+        if (day.session)
+          h +=
+            '<button class="btn" data-swap="' +
+            Gym.esc(ex.id) +
+            '">교체</button>';
         if (isCustom)
           h +=
             '<button class="btn warnbtn" data-del="' +
@@ -2236,6 +2299,21 @@
             : "<p>아직 기록이 없어요</p>") +
           "</div>";
 
+        var prog = sessionProgress(date);
+        if (prog.total) {
+          var allDoneDay = prog.done === prog.total;
+          h +=
+            '<div class="dayprog' +
+            (allDoneDay ? " done" : "") +
+            '"><span>' +
+            (allDoneDay ? "오늘 운동 완료" : prog.done + " / " + prog.total + " 종목 완료") +
+            '</span><button class="btn' +
+            (allDoneDay ? "" : " primary") +
+            '" id="day-done">' +
+            (allDoneDay ? "완료 해제" : "전체 완료") +
+            "</button></div>";
+        }
+
         h += dateBarHTML();
 
         if (!ids.length) {
@@ -2261,7 +2339,14 @@
         }
 
         if (state.panel === "routines") h += routinePickerHTML(date);
-        if (state.panel === "add") h += addBoxHTML({ id: date, session: true });
+        if (state.panel === "add") {
+          if (state.swap)
+            h +=
+              '<div class="swapbar"><b>' +
+              Gym.esc(resolveExercise(state.swap).name) +
+              '</b> 을(를) 무엇으로 바꿀까요?<button class="btn" id="swap-cancel">취소</button></div>';
+          h += addBoxHTML({ id: date, session: true });
+        }
 
         h +=
           '<div class="sechead">' +
@@ -3288,10 +3373,10 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-donex],[data-swap],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
-        "#s-update,#s-purge,#do-install,#nav-settings,[data-theme-set],[data-metric],#alert";
+        "#s-update,#s-purge,#do-install,#day-done,#swap-cancel,#nav-settings,[data-theme-set],[data-metric],#alert";
 
       /* 미래 날짜는 막는다 — 아직 하지 않은 운동을 적을 일은 없다. */
       /* 거부하면 false 를 돌려준다 — 호출한 쪽이 입력창을 되돌려야 하기 때문. */
@@ -3392,10 +3477,11 @@
         }
         var id = existing || (pick ? pick.id : "my-" + Date.now());
         var dup = isSession
-          ? sessionIds(dayId).indexOf(id) >= 0 ||
-            sessionIds(dayId).some(function (x) {
-              return resolveExercise(x).name === name;
-            })
+          ? sessionIds(dayId)
+              .filter(function (x) { return x !== state.swap; })
+              .some(function (x) {
+                return x === id || resolveExercise(x).name === name;
+              })
           : dayHasExercise(dayId, name, id);
         if (dup) {
           notify(name + " 은(는) 이미 있어요.");
@@ -3457,7 +3543,12 @@
           saveMyLib();
         }
 
-        if (isSession) {
+        var swapped = false;
+        if (isSession && state.swap) {
+          if (!applySwap(dayId, id, name)) return;
+          state.swap = null;
+          swapped = true;
+        } else if (isSession) {
           /* 그날 한 번만 하는 종목은 루틴을 건드리지 않는다. */
           var cur = sessionIds(dayId);
           cur.push(id);
@@ -3473,7 +3564,10 @@
         state.q = "";
         state.panel = null;
         render();
-        notify(name + " 을(를) 추가했어요.", "good");
+        notify(
+          swapped ? name + " 로 교체했어요." : name + " 을(를) 추가했어요.",
+          "good",
+        );
       }
 
       function removeFromSession(date, exId) {
@@ -3533,6 +3627,99 @@
         refreshSummary();
         if (next && ex.rest)
           Timer.start(ex.rest, ex.name + " · " + (i + 1) + "세트 완료");
+      }
+
+      function isExerciseDone(exId, date) {
+        var e = Gym.entryFor(logs, exId, date);
+        return !!(
+          e &&
+          e.sets.length &&
+          e.sets.every(function (s) { return s.done; })
+        );
+      }
+
+      function sessionProgress(date) {
+        var ids = sessionIds(date);
+        var done = 0;
+        ids.forEach(function (id) {
+          if (isExerciseDone(id, date)) done += 1;
+        });
+        return { done: done, total: ids.length };
+      }
+
+      /* 종목 하나를 통째로 완료·해제한다. 세트를 하나씩 누르지 않아도 되게. */
+      function toggleExerciseDone(exId) {
+        var date = recordDate();
+        var ex = resolveExercise(exId);
+        var e = ensureEntry(exId, date, setCountFor(ex, date));
+        var next = !isExerciseDone(exId, date);
+        e.sets.forEach(function (s) { s.done = next; });
+        saveLogs();
+        render();
+      }
+
+      /* 그날 전체를 완료·해제한다. */
+      function toggleDayDone() {
+        var date = recordDate();
+        var ids = sessionIds(date);
+        if (!ids.length) return;
+        var p = sessionProgress(date);
+        var next = p.done < p.total;
+        ids.forEach(function (id) {
+          var ex = resolveExercise(id);
+          var e = ensureEntry(id, date, setCountFor(ex, date));
+          e.sets.forEach(function (s) { s.done = next; });
+        });
+        saveLogs();
+        render();
+        notify(next ? "오늘 운동을 완료했어요. 수고하셨어요." : "완료를 해제했어요.", next ? "good" : "bad");
+      }
+
+      /* ── 종목 교체 ──
+         자리를 그대로 두고 다른 종목으로 바꾼다. 기구가 차 있을 때 쓴다. */
+      function startSwap(exId) {
+        state.swap = exId;
+        state.panel = "add";
+        state.q = "";
+        state.pick = null;
+        state.cat = null;
+        render();
+      }
+
+      function cancelSwap() {
+        state.swap = null;
+        state.panel = null;
+        render();
+      }
+
+      function applySwap(date, newId, newName) {
+        var oldId = state.swap;
+        var ids = sessionIds(date);
+        var i = ids.indexOf(oldId);
+        if (i < 0) return false;
+
+        var e = Gym.entryFor(logs, oldId, date);
+        var hasData = e && !Gym.isEmptyEntry(e);
+        if (hasData) {
+          if (
+            !window.confirm(
+              resolveExercise(oldId).name +
+                " 에 적어둔 기록이 있어요.\n" +
+                newName +
+                " 로 바꾸면 이 날 기록은 지워져요. 바꿀까요?",
+            )
+          )
+            return false;
+        }
+
+        ids[i] = newId;
+        setSession(date, ids);
+        if (logs[oldId]) {
+          logs[oldId] = logs[oldId].filter(function (x) { return x.date !== date; });
+          if (!logs[oldId].length) delete logs[oldId];
+          saveLogs();
+        }
+        return true;
       }
 
       /* 세트를 늘리면 직전 세트의 중량·반복수를 복사한다 — 보통 같은 무게로 이어가니까. */
@@ -3681,6 +3868,22 @@
         }
         if (t.dataset.down) {
           moveExercise(t.dataset.day, t.dataset.down, 1);
+          return;
+        }
+        if (t.dataset.donex) {
+          toggleExerciseDone(t.dataset.donex);
+          return;
+        }
+        if (t.dataset.swap) {
+          startSwap(t.dataset.swap);
+          return;
+        }
+        if (t.id === "swap-cancel") {
+          cancelSwap();
+          return;
+        }
+        if (t.id === "day-done") {
+          toggleDayDone();
           return;
         }
         if (t.dataset.addset) {

@@ -749,7 +749,9 @@ describe('index.html 무결성', function(){
     'deleteRoutine', 'setLogDate', 'exportData', 'importFile', 'resetAll',
     'barKg', 'prMap', 'allDays', 'searchPool', 'resolveExercise', 'sessionIds',
     'isStandalone', 'isIOS', 'installGuideHTML', 'doInstall',
-    'setSession', 'loadRoutine', 'removeFromSession', 'routinePickerHTML'
+    'setSession', 'loadRoutine', 'removeFromSession', 'routinePickerHTML',
+    'isExerciseDone', 'sessionProgress', 'toggleExerciseDone', 'toggleDayDone',
+    'startSwap', 'cancelSwap', 'applySwap'
   ];
   var missing = required.filter(function(f){
     return html.indexOf('function ' + f + '(') < 0;
