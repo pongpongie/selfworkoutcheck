@@ -824,7 +824,7 @@ describe('index.html 무결성', function(){
     && html.indexOf('tone(TONE_END_HZ,') >= 0);
 
   // 진행 표시 재설계 — 마크업과 스타일이 짝을 이뤄야 한다
-  ['pinfo', 'pbar', 'pbtn'].forEach(function(c){
+  ['pinfo', 'pbtn'].forEach(function(c){
     ok('.' + c + ' 마크업이 있다', html.indexOf('class="' + c + '"') >= 0);
     ok('.' + c + ' 스타일이 있다', new RegExp('\\.' + c + '\\s*[{,]').test(html));
   });

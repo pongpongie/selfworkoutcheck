@@ -125,6 +125,8 @@
 
   --success: var(--green);
   --success-soft: rgba(52, 199, 89, 0.14);
+  /* 완료 체크 배경. 어두운 면에서는 같은 알파도 훨씬 진해 보여 따로 둔다. */
+  --check-fill: rgba(52, 199, 89, 0.16);
   --warning: var(--orange);
   --warning-soft: rgba(255, 149, 0, 0.14);
   --danger: var(--red);
@@ -177,6 +179,7 @@
     --accent-soft: rgba(51, 149, 255, 0.18);
 
     --success-soft: rgba(52, 199, 89, 0.18);
+    --check-fill: rgba(52, 199, 89, 0.09);
     --warning-soft: rgba(255, 149, 0, 0.18);
     --danger-soft: rgba(232, 54, 44, 0.2);
 
@@ -225,6 +228,7 @@
   --accent-soft: rgba(51, 149, 255, 0.18);
 
   --success-soft: rgba(52, 199, 89, 0.18);
+  --check-fill: rgba(52, 199, 89, 0.09);
   --warning-soft: rgba(255, 149, 0, 0.18);
   --danger-soft: rgba(232, 54, 44, 0.2);
 
