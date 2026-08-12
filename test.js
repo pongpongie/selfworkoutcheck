@@ -751,7 +751,7 @@ describe('index.html 무결성', function(){
     'isStandalone', 'isIOS', 'installGuideHTML', 'doInstall',
     'setSession', 'loadRoutine', 'removeFromSession', 'routinePickerHTML',
     'isExerciseDone', 'sessionProgress', 'toggleExerciseDone', 'toggleDayDone',
-    'startSwap', 'cancelSwap', 'applySwap'
+    'startSwap', 'cancelSwap', 'applySwap', 'dayProgHTML', 'refreshProgress'
   ];
   var missing = required.filter(function(f){
     return html.indexOf('function ' + f + '(') < 0;
@@ -792,6 +792,50 @@ describe('index.html 무결성', function(){
     return html.indexOf('dataset.' + camel) < 0 && html.indexOf('"data-' + a + '"') < 0;
   });
   eq('셀렉터의 data 속성마다 핸들러가 있다', handlerless, []);
+
+  /* findExercise 는 루틴+커스텀만 본다. 종목 교체로 들어온 카탈로그 id(lib-*)는
+     거기 없어서 null 이 되고, 기록·세트 조작이 조용히 무시됐다.
+     쓰기 경로는 반드시 resolveExercise 를 써야 한다. */
+  var writers = ['addSet', 'removeSet', 'toggleSetDone', 'fillFromPrev'];
+  var badLookup = writers.filter(function(fn){
+    var body = html.slice(html.indexOf('function ' + fn + '('));
+    return body.slice(0, body.indexOf('\n      }')).indexOf('findExercise(') >= 0;
+  });
+  eq('쓰기 경로가 resolveExercise 를 쓴다', badLookup, []);
+
+  /* .row 를 .cardtop 으로 감싼 뒤로 parentNode 는 .card 가 아니다.
+     open 클래스가 엉뚱한 곳에 붙어 카드가 안 펼쳐졌다. */
+  ok('toggleCard 가 .card 를 직접 찾는다',
+    /function toggleCard[\s\S]{0,400}?closest\("\.card"\)/.test(html));
+  ok('toggleCard 가 parentNode 를 쓰지 않는다',
+    !/function toggleCard[\s\S]{0,400}?rowEl\.parentNode/.test(html));
+
+  // 타이머 예고음 · 종료음
+  ok('tone 헬퍼가 있다', html.indexOf('function tone(freq, at, dur, vol)') >= 0);
+  ok('예고음 함수가 있다', html.indexOf('function cue()') >= 0);
+  ok('종료음 함수가 있다', html.indexOf('function fanfare()') >= 0);
+  ok('종료 시 fanfare 를 부른다', /function finish\(\)[\s\S]{0,500}?fanfare\(\)/.test(html));
+  ok('10초·3초 예고 상수가 있다',
+    html.indexOf('TONE_CUE_1_MS = 10000') >= 0 && html.indexOf('TONE_CUE_2_MS = 3000') >= 0);
+  ok('예고음은 한 번만 울린다', /!cued1[\s\S]{0,80}cued1 = true/.test(html));
+  ok('시작 시 지난 구간은 울리지 않는다', html.indexOf('cued1 = sec * 1000 <= TONE_CUE_1_MS') >= 0);
+  ok('fanfare 는 뚜 3번 + 띠 1번',
+    (html.match(/tone\(TONE_CUE_HZ, 0\./g) || []).length === 3
+    && html.indexOf('tone(TONE_END_HZ,') >= 0);
+
+  // 진행 표시 재설계 — 마크업과 스타일이 짝을 이뤄야 한다
+  ['pinfo', 'pbar', 'pbtn'].forEach(function(c){
+    ok('.' + c + ' 마크업이 있다', html.indexOf('class="' + c + '"') >= 0);
+    ok('.' + c + ' 스타일이 있다', new RegExp('\\.' + c + '\\s*[{,]').test(html));
+  });
+
+  /* 세트 체크는 포커스 유지를 위해 전체 리렌더를 안 한다.
+     진행 막대를 따로 갈아끼우지 않으면 탭을 나갔다 와야 숫자가 맞았다. */
+  ok('진행 표시가 한 곳에서만 만들어진다',
+    (html.match(/class="dayprog/g) || []).length === 1);
+  ok('renderSession 이 dayProgHTML 을 쓴다', html.indexOf('h += dayProgHTML(date);') >= 0);
+  ok('세트 체크가 진행 막대를 갱신한다',
+    /function toggleSetDone[\s\S]{0,900}?refreshProgress\(\)/.test(html));
 });
 
 /* ---------- 결과 ---------- */

@@ -398,17 +398,43 @@
       .card.done .nm { text-decoration-color: var(--text-3); }
 
       .dayprog {
-        display: flex; align-items: center; gap: 12px;
-        margin-top: var(--gap-lg); padding: 12px 14px;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center; gap: 14px;
+        margin-top: var(--gap-lg); padding: 14px 16px;
         border: 1px solid var(--line); border-radius: var(--radius-container);
         background: var(--surface);
       }
-      .dayprog span {
-        flex: 1; font-family: var(--font-mono);
-        font-size: var(--t-caption); color: var(--text-2);
+      .pinfo { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+      .pinfo b {
+        font-family: var(--font-mono); font-size: var(--t-headline);
+        font-weight: var(--w-semibold); letter-spacing: -0.5px; line-height: 1;
       }
-      .dayprog.done { background: var(--success-soft); border-color: var(--success); }
-      .dayprog.done span { color: var(--text); font-weight: var(--w-medium); }
+      .pinfo span { font-size: var(--t-small); color: var(--text-3); }
+      .pinfo em {
+        font-style: normal; font-size: var(--t-small);
+        color: var(--success); font-weight: var(--w-medium); margin-left: 4px;
+      }
+      .pbar {
+        height: 5px; border-radius: 3px;
+        background: var(--surface-2); overflow: hidden;
+      }
+      .pbar i {
+        display: block; height: 100%; border-radius: 3px;
+        background: var(--accent); transition: width 0.25s ease;
+      }
+      .pbtn {
+        flex: none; padding: 7px 12px;
+        border: 1px solid var(--line); border-radius: var(--radius-pill);
+        background: transparent; color: var(--text-2);
+        font-size: var(--t-small); font-weight: var(--w-medium);
+        cursor: pointer; white-space: nowrap;
+      }
+      .pbtn:hover { border-color: var(--line-strong); color: var(--text); }
+      .pbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .dayprog.done { border-color: var(--success); background: var(--success-soft); }
+      .dayprog.done .pbar i { background: var(--success); }
+      .dayprog.done .pbtn { border-color: var(--success); color: var(--success); }
 
       .swapbar {
         display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
@@ -792,6 +818,10 @@
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
+      var TONE_CUE_1_MS = 10000; /* 10초 예고 */
+      var TONE_CUE_2_MS = 3000; /* 3초 예고 */
+      var TONE_CUE_HZ = 660;
+      var TONE_END_HZ = 1320;
       var TIMER_HIDE_MS = 8000;
       var ADD_SECONDS = 30;
       var MAX_NAME = 60,
@@ -1310,6 +1340,8 @@
           val = document.getElementById("tval"),
           lbl = document.getElementById("tlbl");
         var actx = null;
+        var cued1 = false,
+          cued2 = false;
 
         function remainMs() {
           return endAt - Date.now();
@@ -1342,22 +1374,44 @@
           return actx;
         }
 
-        function beep() {
+        /* at 초 뒤에 한 음을 예약한다. 삼각파는 사인파보다 배음이 있어
+           같은 게인에서도 헬스장 소음 속에서 더 잘 들린다. */
+        function tone(freq, at, dur, vol) {
           var ctx = audio();
           if (!ctx) return;
           try {
+            var t0 = ctx.currentTime + at;
             var o = ctx.createOscillator(),
               g = ctx.createGain();
             o.connect(g);
             g.connect(ctx.destination);
-            o.frequency.value = 880;
-            o.type = "sine";
-            g.gain.setValueAtTime(0.0001, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
-            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-            o.start();
-            o.stop(ctx.currentTime + 0.62);
+            o.type = "triangle";
+            o.frequency.setValueAtTime(freq, t0);
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+            g.gain.setValueAtTime(vol, t0 + dur * 0.6);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+            o.start(t0);
+            o.stop(t0 + dur + 0.02);
           } catch (e) {}
+        }
+
+        /* 10초 · 3초 예고음. 짧게 한 번. */
+        function cue() {
+          tone(TONE_CUE_HZ, 0, 0.16, 0.55);
+          if (navigator.vibrate) {
+            try {
+              navigator.vibrate(60);
+            } catch (e) {}
+          }
+        }
+
+        /* 종료음 — 뚜 뚜 뚜 띠. 마지막만 한 옥타브 위로 올려 끝을 알린다. */
+        function fanfare() {
+          tone(TONE_CUE_HZ, 0.0, 0.13, 0.75);
+          tone(TONE_CUE_HZ, 0.22, 0.13, 0.75);
+          tone(TONE_CUE_HZ, 0.44, 0.13, 0.75);
+          tone(TONE_END_HZ, 0.68, 0.45, 0.8);
         }
 
         function releaseWake() {
@@ -1399,10 +1453,10 @@
           paint();
           el.classList.add("done");
           lbl.textContent = "다음 세트 준비";
-          beep();
+          fanfare();
           if (navigator.vibrate) {
             try {
-              navigator.vibrate([200, 100, 200]);
+              navigator.vibrate([90, 130, 90, 130, 90, 150, 320]);
             } catch (e) {}
           }
           releaseWake();
@@ -1415,7 +1469,16 @@
 
         function tick() {
           paint();
-          if (remainMs() <= 0) finish();
+          var left = remainMs();
+          if (left <= TONE_CUE_1_MS && !cued1) {
+            cued1 = true;
+            cue();
+          }
+          if (left <= TONE_CUE_2_MS && !cued2) {
+            cued2 = true;
+            cue();
+          }
+          if (left <= 0) finish();
         }
 
         function run() {
@@ -1431,6 +1494,8 @@
           audio();
           clearHide();
           endAt = Date.now() + sec * 1000;
+          cued1 = sec * 1000 <= TONE_CUE_1_MS;
+          cued2 = sec * 1000 <= TONE_CUE_2_MS;
           label = text || "휴식";
           lbl.textContent = label;
           el.classList.add("on");
@@ -2124,7 +2189,9 @@
           Gym.esc(day.id) +
           '" data-session="' +
           (day.session ? "1" : "0") +
-          '">추가하기</button></div></div>'
+          '">' +
+          (state.swap ? "교체하기" : "추가하기") +
+          "</button></div></div>"
         );
       }
 
@@ -2299,20 +2366,7 @@
             : "<p>아직 기록이 없어요</p>") +
           "</div>";
 
-        var prog = sessionProgress(date);
-        if (prog.total) {
-          var allDoneDay = prog.done === prog.total;
-          h +=
-            '<div class="dayprog' +
-            (allDoneDay ? " done" : "") +
-            '"><span>' +
-            (allDoneDay ? "오늘 운동 완료" : prog.done + " / " + prog.total + " 종목 완료") +
-            '</span><button class="btn' +
-            (allDoneDay ? "" : " primary") +
-            '" id="day-done">' +
-            (allDoneDay ? "완료 해제" : "전체 완료") +
-            "</button></div>";
-        }
+        h += dayProgHTML(date);
 
         h += dateBarHTML();
 
@@ -3394,8 +3448,12 @@
 
       function toggleCard(rowEl) {
         var id = rowEl.dataset.toggle;
+        /* .row 를 .cardtop 으로 감싼 뒤로 parentNode 는 .card 가 아니다.
+           .cardtop 에 open 이 붙어서 .card.open .panel 규칙이 안 먹었다. */
+        var card = rowEl.closest(".card");
+        if (!card) return;
         state.open[id] = !state.open[id];
-        rowEl.parentNode.classList.toggle("open", state.open[id]);
+        card.classList.toggle("open", state.open[id]);
         rowEl.setAttribute("aria-expanded", state.open[id] ? "true" : "false");
       }
 
@@ -3608,7 +3666,7 @@
       function toggleSetDone(btn) {
         var exId = btn.dataset.done,
           i = +btn.dataset.i;
-        var ex = findExercise(exId);
+        var ex = resolveExercise(exId);
         if (!ex) return;
         var e = ensureEntry(exId, recordDate(), setCountFor(ex, recordDate()));
         var next = !e.sets[i].done;
@@ -3625,6 +3683,7 @@
             }),
           );
         refreshSummary();
+        refreshProgress();
         if (next && ex.rest)
           Timer.start(ex.rest, ex.name + " · " + (i + 1) + "세트 완료");
       }
@@ -3648,6 +3707,37 @@
       }
 
       /* 종목 하나를 통째로 완료·해제한다. 세트를 하나씩 누르지 않아도 되게. */
+      /* 진행 표시. renderSession 과 refreshProgress 가 같은 마크업을 써야
+         세트를 체크했을 때 막대가 바로 따라 움직인다. */
+      function dayProgHTML(date) {
+        var prog = sessionProgress(date);
+        if (!prog.total) return "";
+        var all = prog.done === prog.total;
+        var pct = Math.round((prog.done / prog.total) * 100);
+        return (
+          '<div class="dayprog' +
+          (all ? " done" : "") +
+          '" id="dayprog"><div class="pinfo"><b>' +
+          prog.done +
+          "</b><span>/ " +
+          prog.total +
+          " 종목</span>" +
+          (all ? "<em>다 하셨어요</em>" : "") +
+          '</div><div class="pbar"><i style="width:' +
+          pct +
+          '%"></i></div><button class="pbtn" id="day-done">' +
+          (all ? "해제" : "전체 완료") +
+          "</button></div>"
+        );
+      }
+
+      /* 세트 체크는 입력 포커스를 지키려고 전체 리렌더를 하지 않는다.
+         그래서 진행 막대만 따로 갈아끼운다. */
+      function refreshProgress() {
+        var box = document.getElementById("dayprog");
+        if (box) box.outerHTML = dayProgHTML(recordDate());
+      }
+
       function toggleExerciseDone(exId) {
         var date = recordDate();
         var ex = resolveExercise(exId);
@@ -3724,7 +3814,7 @@
 
       /* 세트를 늘리면 직전 세트의 중량·반복수를 복사한다 — 보통 같은 무게로 이어가니까. */
       function addSet(exId) {
-        var ex = findExercise(exId);
+        var ex = resolveExercise(exId);
         if (!ex) return;
         var date = recordDate();
         var count = setCountFor(ex, date);
@@ -3745,7 +3835,7 @@
       }
 
       function removeSet(exId) {
-        var ex = findExercise(exId);
+        var ex = resolveExercise(exId);
         if (!ex) return;
         var date = recordDate();
         var count = setCountFor(ex, date);
@@ -3763,7 +3853,7 @@
           notify("불러올 지난 기록이 없어요.");
           return;
         }
-        var ex = findExercise(exId);
+        var ex = resolveExercise(exId);
         if (!ex) return;
         var cur = ensureEntry(exId, recordDate(), setCountFor(ex, recordDate()));
         prev.sets.forEach(function (s, i) {
@@ -4072,7 +4162,7 @@
 
         var exId = el.dataset.w || el.dataset.r;
         if (!exId) return;
-        var ex = findExercise(exId);
+        var ex = resolveExercise(exId);
         if (!ex) return;
 
         var raw = el.value.trim();
