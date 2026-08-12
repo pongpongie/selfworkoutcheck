@@ -813,8 +813,8 @@
       var BACKUP_VERSION = 1;
       var MAX_BACKUP_BYTES = 5 * 1024 * 1024;
       var TIMER_TICK_MS = 500;
-      var TONE_CUE_1_MS = 10000; /* 10초 예고 */
-      var TONE_CUE_2_MS = 3000; /* 3초 예고 */
+      /* 뚜(3) 뚜(2) 뚜(1) 띠(0) 카운트다운 + 10초 예고 */
+      var TONE_CUE_SECS = [10, 3, 2, 1];
       var TONE_CUE_HZ = 660;
       var TONE_END_HZ = 1320;
       var TIMER_HIDE_MS = 8000;
@@ -1335,8 +1335,7 @@
           val = document.getElementById("tval"),
           lbl = document.getElementById("tlbl");
         var actx = null;
-        var cued1 = false,
-          cued2 = false;
+        var lastSec = -1;
 
         function remainMs() {
           return endAt - Date.now();
@@ -1391,7 +1390,7 @@
           } catch (e) {}
         }
 
-        /* 10초 · 3초 예고음. 짧게 한 번. */
+        /* 카운트다운 한 음 — 뚜. */
         function cue() {
           tone(TONE_CUE_HZ, 0, 0.16, 0.55);
           if (navigator.vibrate) {
@@ -1401,12 +1400,9 @@
           }
         }
 
-        /* 종료음 — 뚜 뚜 뚜 띠. 마지막만 한 옥타브 위로 올려 끝을 알린다. */
-        function fanfare() {
-          tone(TONE_CUE_HZ, 0.0, 0.13, 0.75);
-          tone(TONE_CUE_HZ, 0.22, 0.13, 0.75);
-          tone(TONE_CUE_HZ, 0.44, 0.13, 0.75);
-          tone(TONE_END_HZ, 0.68, 0.45, 0.8);
+        /* 종료음 — 띠. 카운트다운의 뚜보다 한 옥타브 위로 올려 끝을 알린다. */
+        function endTone() {
+          tone(TONE_END_HZ, 0, 0.5, 0.8);
         }
 
         function releaseWake() {
@@ -1448,10 +1444,10 @@
           paint();
           el.classList.add("done");
           lbl.textContent = "다음 세트 준비";
-          fanfare();
+          endTone();
           if (navigator.vibrate) {
             try {
-              navigator.vibrate([90, 130, 90, 130, 90, 150, 320]);
+              navigator.vibrate([320]);
             } catch (e) {}
           }
           releaseWake();
@@ -1465,13 +1461,11 @@
         function tick() {
           paint();
           var left = remainMs();
-          if (left <= TONE_CUE_1_MS && !cued1) {
-            cued1 = true;
-            cue();
-          }
-          if (left <= TONE_CUE_2_MS && !cued2) {
-            cued2 = true;
-            cue();
+          /* 초가 넘어가는 순간에만 울린다. 틱은 초보다 잦다. */
+          var sec = Math.ceil(left / 1000);
+          if (sec !== lastSec) {
+            lastSec = sec;
+            if (TONE_CUE_SECS.indexOf(sec) >= 0) cue();
           }
           if (left <= 0) finish();
         }
@@ -1489,8 +1483,7 @@
           audio();
           clearHide();
           endAt = Date.now() + sec * 1000;
-          cued1 = sec * 1000 <= TONE_CUE_1_MS;
-          cued2 = sec * 1000 <= TONE_CUE_2_MS;
+          lastSec = sec;
           label = text || "휴식";
           lbl.textContent = label;
           el.classList.add("on");

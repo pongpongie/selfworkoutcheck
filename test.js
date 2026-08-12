@@ -813,15 +813,15 @@ describe('index.html 무결성', function(){
   // 타이머 예고음 · 종료음
   ok('tone 헬퍼가 있다', html.indexOf('function tone(freq, at, dur, vol)') >= 0);
   ok('예고음 함수가 있다', html.indexOf('function cue()') >= 0);
-  ok('종료음 함수가 있다', html.indexOf('function fanfare()') >= 0);
-  ok('종료 시 fanfare 를 부른다', /function finish\(\)[\s\S]{0,500}?fanfare\(\)/.test(html));
-  ok('10초·3초 예고 상수가 있다',
-    html.indexOf('TONE_CUE_1_MS = 10000') >= 0 && html.indexOf('TONE_CUE_2_MS = 3000') >= 0);
-  ok('예고음은 한 번만 울린다', /!cued1[\s\S]{0,80}cued1 = true/.test(html));
-  ok('시작 시 지난 구간은 울리지 않는다', html.indexOf('cued1 = sec * 1000 <= TONE_CUE_1_MS') >= 0);
-  ok('fanfare 는 뚜 3번 + 띠 1번',
-    (html.match(/tone\(TONE_CUE_HZ, 0\./g) || []).length === 3
-    && html.indexOf('tone(TONE_END_HZ,') >= 0);
+  ok('종료음 함수가 있다', html.indexOf('function endTone()') >= 0);
+  ok('종료 시 endTone 을 부른다', /function finish\(\)[\s\S]{0,500}?endTone\(\)/.test(html));
+  ok('카운트다운 초가 10·3·2·1', html.indexOf('TONE_CUE_SECS = [10, 3, 2, 1]') >= 0);
+  /* 틱은 500ms 마다 돈다. 초 경계에서만 울리지 않으면 한 초에 두 번 난다. */
+  ok('초가 바뀔 때만 울린다', /sec !== lastSec[\s\S]{0,120}TONE_CUE_SECS\.indexOf\(sec\)/.test(html));
+  ok('시작 초는 이미 알린 것으로 둔다', /endAt = Date\.now\(\)[\s\S]{0,60}lastSec = sec;/.test(html));
+  ok('종료음은 뚜보다 높다', html.indexOf('tone(TONE_END_HZ, 0, 0.5, 0.8)') >= 0);
+  ok('종료음이 여러 음을 몰아치지 않는다',
+    (html.match(/tone\(TONE_[A-Z_]+HZ,/g) || []).length === 2);
 
   // 진행 표시 재설계 — 마크업과 스타일이 짝을 이뤄야 한다
   ['pinfo', 'pbtn'].forEach(function(c){
