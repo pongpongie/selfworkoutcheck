@@ -634,6 +634,14 @@
         font-size: var(--t-footnote); line-height: 1.6;
       }
       .memofld:focus { outline: none; border-color: var(--accent); }
+      .mealrow { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+      .mealrow:last-of-type { border-bottom: none; }
+      .mealtext { flex: 1; font-size: var(--t-footnote); line-height: 1.4; }
+      .mealtext small { color: var(--text-3); margin-left: 4px; }
+      .mealrm { min-width: 28px; min-height: 28px; padding: 2px 6px; font-size: var(--t-small); }
+      .mealform { display: flex; gap: 6px; align-items: center; margin-top: 8px; }
+      .mealform .searchfld { flex: 1; margin: 0; }
+      .mealform input[type="number"] { margin: 0; }
       .calcell.future { opacity: 0.3; }
       button.calcell { cursor: pointer; }
 
@@ -1253,13 +1261,140 @@
           ],
         },
         {
-          id: "dx",
-          num: "EXTRA",
-          name: "엑스트라",
+          id: "d5",
+          num: "DAY 05",
+          name: "가슴 등",
           tag: "",
           accent: "#7B3FA0",
-          freeform: true,
-          main: [],
+          main: [
+            {
+              id: "d5-bench",
+              name: "덤벨 벤치프레스",
+              load: 16,
+              unit: "kg ×2",
+              sets: 4,
+              reps: "10회",
+              rest: 90,
+            },
+            {
+              id: "d5-fly",
+              name: "케이블 플라이",
+              load: 10,
+              unit: "kg /쪽",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d5-dips",
+              name: "딥스 (가슴)",
+              load: 0,
+              unit: "맨몸",
+              sets: 3,
+              reps: "최대반복",
+              rest: 90,
+            },
+            {
+              id: "d5-row",
+              name: "시티드 케이블 로우",
+              load: 40,
+              unit: "kg",
+              sets: 4,
+              reps: "12회",
+              rest: 90,
+            },
+            {
+              id: "d5-lat",
+              name: "랫풀다운",
+              load: 40,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 90,
+            },
+            {
+              id: "d5-pullover",
+              name: "덤벨 풀오버",
+              load: 16,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+            },
+          ],
+        },
+        {
+          id: "d6",
+          num: "DAY 06",
+          name: "이삼두 어깨",
+          tag: "",
+          accent: "#C75B39",
+          main: [
+            {
+              id: "d6-ohp",
+              name: "덤벨 숄더프레스",
+              load: 14,
+              unit: "kg ×2",
+              sets: 4,
+              reps: "10회",
+              rest: 90,
+            },
+            {
+              id: "d6-lateral",
+              name: "사이드 레터럴 레이즈",
+              load: 6,
+              unit: "kg ×2",
+              sets: 4,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d6-facepull",
+              name: "페이스풀",
+              load: 20,
+              unit: "kg",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d6-curl",
+              name: "바벨컬",
+              load: 20,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+              plates: true,
+            },
+            {
+              id: "d6-hammer",
+              name: "해머컬",
+              load: 10,
+              unit: "kg ×2",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+            },
+            {
+              id: "d6-pushdown",
+              name: "케이블 푸시다운",
+              load: 20,
+              unit: "kg",
+              sets: 3,
+              reps: "15회",
+              rest: 60,
+            },
+            {
+              id: "d6-ohe",
+              name: "오버헤드 익스텐션",
+              load: 12,
+              unit: "kg",
+              sets: 3,
+              reps: "12회",
+              rest: 60,
+            },
+          ],
         },
       ];
 
@@ -2744,6 +2879,9 @@
         var day = (cal || Gym.buildCalendar(logs))[date];
         var note = days[date] || {};
         var dur = Gym.formatDuration(note.min);
+        var mealKcal = 0;
+        (note.meals || []).forEach(function (m) { if (m.kcal) mealKcal += m.kcal; });
+        var totalKcal = (note.kcal || 0) + mealKcal;
         return (
           '<div class="sumcell"><span>운동 시간</span><b>' +
           (dur ? Gym.esc(dur) : "—") +
@@ -2754,9 +2892,10 @@
           '<div class="sumcell"><span>전체 볼륨</span><b>' +
           Gym.formatNumber(day ? day.volume : 0) +
           "<i>kg</i></b></div>" +
-          '<div class="sumcell"><span>총 세트</span><b>' +
-          (day ? day.sets : 0) +
-          "<i>세트</i></b></div>"
+          '<div class="sumcell"><span>소모 칼로리</span><b>' +
+          (totalKcal ? Gym.formatNumber(totalKcal) : "—") +
+          (totalKcal ? "<i>kcal</i>" : "") +
+          "</b></div>"
         );
       }
 
@@ -2781,6 +2920,32 @@
           '"><span>분</span></div></div>';
 
         h +=
+          '<div class="sumrow"><label for="s-kcal">소모 칼로리</label>' +
+          '<div class="fld"><input type="number" id="s-kcal" inputmode="numeric" min="0" max="99999" ' +
+          'placeholder="0" value="' +
+          (note.kcal || "") +
+          '"><span>kcal</span></div></div>';
+
+        h += '<div class="sechead" style="margin-top:var(--gap-md)">식단 기록</div>';
+        h += '<div class="addbox summary" id="meal-box">';
+        var meals = note.meals || [];
+        meals.forEach(function (m, i) {
+          h +=
+            '<div class="mealrow">' +
+            '<span class="mealtext">' + Gym.esc(m.text) +
+            (m.kcal ? ' <small>' + m.kcal + 'kcal</small>' : '') +
+            '</span>' +
+            '<button class="btn mealrm" data-mealdel="' + i + '">✕</button></div>';
+        });
+        h +=
+          '<div class="mealform">' +
+          '<input id="m-text" class="searchfld" maxlength="200" placeholder="음식 (예: 닭가슴살 200g)" aria-label="음식">' +
+          '<input id="m-kcal" type="number" inputmode="numeric" min="0" max="99999" placeholder="kcal" aria-label="칼로리" style="width:80px">' +
+          '<button class="btn primary" id="m-add">추가</button>' +
+          '</div></div>';
+
+        h +=
+          '<div class="addbox summary">' +
           '<textarea id="s-memo" class="memofld" maxlength="500" rows="3" ' +
           'aria-label="오늘 메모" placeholder="오늘 운동은 어땠나요? 간단히 적어두시면 다음에 도움이 돼요.">' +
           Gym.esc(note.memo || "") +
@@ -2798,7 +2963,8 @@
         var day = cal[date];
         var note = days[date] || {};
         var ids = sessionIds(date);
-        if (!day && !ids.length) return null;
+        var meals = note.meals || [];
+        if (!day && !ids.length && !meals.length) return null;
 
         var lines = [];
         lines.push(Gym.shortDate(date) + " 운동 기록");
@@ -2808,6 +2974,10 @@
         if (day) {
           lines.push(day.count + "종목 · " + day.sets + "세트 · " + Gym.formatNumber(day.volume) + "kg");
         }
+        var mealKcal = 0;
+        meals.forEach(function (m) { if (m.kcal) mealKcal += m.kcal; });
+        var totalKcal = (note.kcal || 0) + mealKcal;
+        if (totalKcal) lines.push("🔥 " + Gym.formatNumber(totalKcal) + "kcal 소모");
         lines.push("");
 
         ids.forEach(function (id) {
@@ -2821,11 +2991,45 @@
           lines.push("• " + ex.name + "  " + Gym.formatSetLine(used));
         });
 
+        if (meals.length) {
+          lines.push("");
+          lines.push("🍽 식단");
+          meals.forEach(function (m) {
+            lines.push("• " + m.text + (m.kcal ? " (" + m.kcal + "kcal)" : ""));
+          });
+        }
+
         if (note.memo) {
           lines.push("");
           lines.push(note.memo);
         }
         return lines.join("\n");
+      }
+
+      /* ---- 식단 기록 ---- */
+      function addMeal() {
+        var text = (document.getElementById("m-text").value || "").trim();
+        if (!text) { notify("음식을 입력해주세요."); return; }
+        var kcalEl = document.getElementById("m-kcal");
+        var kcal = parseInt(kcalEl.value, 10);
+        var rec = summaryDate();
+        if (!days[rec]) days[rec] = {};
+        if (!days[rec].meals) days[rec].meals = [];
+        var meal = { text: text.slice(0, 200) };
+        if (isFinite(kcal) && kcal > 0) meal.kcal = Math.min(99999, kcal);
+        days[rec].meals.push(meal);
+        saveDays();
+        render();
+        notify(text + " 추가했어요.", "good");
+      }
+
+      function deleteMeal(index) {
+        var rec = summaryDate();
+        if (!days[rec] || !days[rec].meals) return;
+        days[rec].meals.splice(index, 1);
+        if (!days[rec].meals.length) delete days[rec].meals;
+        saveDays();
+        render();
       }
 
       function shareText(date) {
@@ -2884,7 +3088,8 @@
         var day = cal[date];
         var note = days[date] || {};
         var ids = sessionIds(date);
-        if (!day && !ids.length) { notify("공유할 기록이 없어요."); return; }
+        var meals = note.meals || [];
+        if (!day && !ids.length && !meals.length) { notify("공유할 기록이 없어요."); return; }
 
         /* 종목 목록 준비 */
         var exercises = [];
@@ -2898,7 +3103,7 @@
           if (!used.length) return;
           exercises.push({ name: ex.name, detail: Gym.formatSetLine(used) });
         });
-        if (!exercises.length) { notify("공유할 기록이 없어요."); return; }
+        if (!exercises.length && !meals.length) { notify("공유할 기록이 없어요."); return; }
 
         /* 다크모드 감지 */
         var isDark = document.documentElement.getAttribute("data-theme") === "dark" ||
@@ -2912,11 +3117,17 @@
         var headerH = 80;
         var statH = 56;
         var rowH = 44;
+        var mealHeaderH = meals.length ? 30 : 0;
+        var mealRowH = 28;
         var memoH = note.memo ? 48 : 0;
         var footerH = 36;
         var gapAfterStat = 16;
-        var gapAfterRows = memoH ? 12 : 0;
-        var H = pad + headerH + statH + gapAfterStat + exercises.length * rowH + gapAfterRows + memoH + footerH + pad;
+        var gapAfterRows = (meals.length || memoH) ? 12 : 0;
+        var gapAfterMeals = memoH && meals.length ? 12 : 0;
+        var H = pad + headerH + statH + gapAfterStat +
+          exercises.length * rowH + gapAfterRows +
+          mealHeaderH + meals.length * mealRowH + gapAfterMeals +
+          memoH + footerH + pad;
 
         var c = document.createElement("canvas");
         c.width = W * dpr;
@@ -2969,12 +3180,16 @@
         ctx.roundRect(x, y, contentW, statH, 10);
         ctx.fill();
 
+        var mealKcal = 0;
+        meals.forEach(function (m) { if (m.kcal) mealKcal += m.kcal; });
+        var totalKcal = (note.kcal || 0) + mealKcal;
         var stats = [];
         if (day) {
           stats.push({ v: String(day.count), u: "종목" });
           stats.push({ v: String(day.sets), u: "세트" });
           stats.push({ v: Gym.formatNumber(day.volume), u: "kg" });
         }
+        if (totalKcal) stats.push({ v: Gym.formatNumber(totalKcal), u: "kcal" });
         if (stats.length) {
           var sw = contentW / stats.length;
           stats.forEach(function (s, i) {
@@ -3003,7 +3218,6 @@
 
           ctx.fillStyle = textMid;
           ctx.font = "400 12px -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
-          /* 세트 상세가 길면 잘라준다 */
           var detail = ex.detail;
           if (ctx.measureText(detail).width > contentW - 20) {
             while (detail.length > 4 && ctx.measureText(detail + "…").width > contentW - 20) {
@@ -3015,9 +3229,31 @@
           y += rowH;
         });
 
+        /* 식단 */
+        if (meals.length) {
+          y += gapAfterRows;
+          ctx.fillStyle = textSub;
+          ctx.font = "600 11px -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+          ctx.fillText("DIET", x + 4, y + 16);
+          y += mealHeaderH;
+          meals.forEach(function (m) {
+            ctx.fillStyle = textMid;
+            ctx.font = "400 12px -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
+            var mtext = m.text + (m.kcal ? "  " + m.kcal + "kcal" : "");
+            if (ctx.measureText(mtext).width > contentW - 20) {
+              while (mtext.length > 4 && ctx.measureText(mtext + "…").width > contentW - 20) {
+                mtext = mtext.slice(0, -1);
+              }
+              mtext += "…";
+            }
+            ctx.fillText("· " + mtext, x + 4, y + 16);
+            y += mealRowH;
+          });
+        }
+
         /* 메모 */
         if (note.memo) {
-          y += gapAfterRows;
+          y += gapAfterMeals || (meals.length ? 0 : gapAfterRows);
           ctx.fillStyle = textSub;
           ctx.font = "italic 12px -apple-system, BlinkMacSystemFont, system-ui, sans-serif";
           var memo = note.memo;
@@ -3045,7 +3281,6 @@
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({ files: [file] }).catch(function () {});
           } else {
-            /* 공유 불가 환경 — 다운로드 */
             var a = document.createElement("a");
             a.href = URL.createObjectURL(blob);
             a.download = file.name;
@@ -3763,7 +3998,7 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-donex],[data-swap],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del],[data-editex],[data-sharedate],[data-sharetxt]," +
+        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-donex],[data-swap],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del],[data-editex],[data-sharedate],[data-sharetxt],[data-mealdel],#m-add," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
         "#s-update,#s-purge,#do-install,#day-done,#swap-cancel,#nav-settings,[data-theme-set],[data-metric],#alert";
@@ -4344,6 +4579,14 @@
           shareText(t.dataset.sharetxt);
           return;
         }
+        if (t.dataset.mealdel != null) {
+          deleteMeal(+t.dataset.mealdel);
+          return;
+        }
+        if (t.id === "m-add") {
+          addMeal();
+          return;
+        }
         if (t.dataset.del) {
           if (t.dataset.session === "1")
             removeFromSession(t.dataset.day, t.dataset.del);
@@ -4488,6 +4731,16 @@
           if (!days[rec]) days[rec] = {};
           if (isFinite(mins) && mins > 0) days[rec].min = Math.min(1440, mins);
           else delete days[rec].min;
+          saveDays();
+          render();
+          return;
+        }
+        if (el.id === "s-kcal") {
+          var kcal = parseInt(el.value, 10);
+          var rec = summaryDate();
+          if (!days[rec]) days[rec] = {};
+          if (isFinite(kcal) && kcal > 0) days[rec].kcal = Math.min(99999, kcal);
+          else delete days[rec].kcal;
           saveDays();
           render();
           return;

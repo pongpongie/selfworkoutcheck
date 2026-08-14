@@ -226,6 +226,9 @@
 
   var MAX_MEMO = 500;
   var MAX_MINUTES = 1440;
+  var MAX_KCAL = 99999;
+  var MAX_MEAL_TEXT = 200;
+  var MAX_MEALS = 20;
 
   function formatDuration(min) {
     var m = parseInt(min, 10);
@@ -239,7 +242,24 @@
     if (!d) return true;
     var hasMin = d.min != null && d.min > 0;
     var hasMemo = typeof d.memo === 'string' && d.memo.trim() !== '';
-    return !hasMin && !hasMemo;
+    var hasKcal = d.kcal != null && d.kcal > 0;
+    var hasMeals = Array.isArray(d.meals) && d.meals.length > 0;
+    return !hasMin && !hasMemo && !hasKcal && !hasMeals;
+  }
+
+  function sanitizeMeals(arr) {
+    if (!Array.isArray(arr)) return [];
+    var out = [];
+    arr.forEach(function (m) {
+      if (!m || typeof m !== 'object') return;
+      var text = typeof m.text === 'string' ? m.text.slice(0, MAX_MEAL_TEXT).trim() : '';
+      if (!text) return;
+      var item = { text: text };
+      var kcal = parseInt(m.kcal, 10);
+      if (isFinite(kcal) && kcal > 0) item.kcal = Math.min(MAX_KCAL, kcal);
+      out.push(item);
+    });
+    return out.slice(0, MAX_MEALS);
   }
 
   function sanitizeDays(raw) {
@@ -256,6 +276,10 @@
         var memo = d.memo.slice(0, MAX_MEMO).trim();
         if (memo) item.memo = memo;
       }
+      var kcal = parseInt(d.kcal, 10);
+      if (isFinite(kcal) && kcal > 0) item.kcal = Math.min(MAX_KCAL, kcal);
+      var meals = sanitizeMeals(d.meals);
+      if (meals.length) item.meals = meals;
       if (!isEmptyDay(item)) out[k] = item;
     });
     return out;
