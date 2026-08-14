@@ -958,7 +958,6 @@
           sets: 2,
           reps: "15회",
           rest: 45,
-          note: "어깨 지치기 전에 먼저. 밴드로 해도 됨",
         },
       ];
 
@@ -972,7 +971,6 @@
           sets: 4,
           reps: "15회",
           rest: 0,
-          note: "쉬지 않고 다음",
         },
         {
           id: "c-side",
@@ -982,7 +980,6 @@
           sets: 4,
           reps: "15회",
           rest: 0,
-          note: "쉬지 않고 다음",
         },
         {
           id: "c-front",
@@ -992,21 +989,7 @@
           sets: 4,
           reps: "15회",
           rest: 60,
-          note: "라운드 끝 · 60초 휴식",
         },
-      ];
-
-      var LEGSUB = [
-        "고블릿 스쿼트 <b>20kg</b> — 자리 잘 남",
-        "스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로",
-        "워킹 런지 <b>12kg ×2</b> — 한쪽 12보",
-        "레그 익스텐션 <b>35kg</b> — 사두만 집중",
-      ];
-      var LEGSUB2 = [
-        "덤벨 스텝업 <b>12kg ×2</b> — 한쪽 10회",
-        "스미스 머신 스쿼트 <b>40kg</b> — 발을 앞으로",
-        "고블릿 스쿼트 <b>20kg</b> — 자리 잘 남",
-        "벨트 스쿼트 — 헬스장에 있으면",
       ];
 
       var DAYS = [
@@ -1014,7 +997,7 @@
           id: "d1",
           num: "DAY 01",
           name: "상체 A",
-          tag: "저반복 · 힘",
+          tag: "",
           accent: "#B72B27",
           main: [
             {
@@ -1023,7 +1006,7 @@
               load: 45,
               unit: "kg",
               sets: 4,
-              reps: "6-8회",
+              reps: "8회",
               rest: 120,
               plates: true,
             },
@@ -1033,7 +1016,7 @@
               load: 40,
               unit: "kg",
               sets: 4,
-              reps: "8-10회",
+              reps: "10회",
               rest: 90,
               plates: true,
             },
@@ -1043,7 +1026,7 @@
               load: 16,
               unit: "kg ×2",
               sets: 3,
-              reps: "10-12회",
+              reps: "12회",
               rest: 90,
             },
             {
@@ -1052,7 +1035,7 @@
               load: 45,
               unit: "kg",
               sets: 3,
-              reps: "10-12회",
+              reps: "12회",
               rest: 90,
             },
             {
@@ -1061,7 +1044,7 @@
               load: 8,
               unit: "kg ×2",
               sets: 3,
-              reps: "10-12회",
+              reps: "12회",
               rest: 60,
             },
             {
@@ -1070,7 +1053,7 @@
               load: 20,
               unit: "kg",
               sets: 3,
-              reps: "12-15회",
+              reps: "15회",
               rest: 60,
             },
           ],
@@ -1079,7 +1062,7 @@
           id: "d2",
           num: "DAY 02",
           name: "하체 A",
-          tag: "스쿼트 중심",
+          tag: "",
           accent: "#23528F",
           main: [
             {
@@ -1088,7 +1071,7 @@
               load: 60,
               unit: "kg",
               sets: 4,
-              reps: "6-8회",
+              reps: "8회",
               rest: 150,
               plates: true,
             },
@@ -1098,20 +1081,18 @@
               load: 50,
               unit: "kg",
               sets: 3,
-              reps: "8-10회",
+              reps: "10회",
               rest: 120,
               plates: true,
             },
             {
               id: "d2-lp",
               name: "레그프레스",
-              sub: "기계별로 조정",
               load: 60,
-              unit: "kg~",
+              unit: "kg",
               sets: 3,
               reps: "12회",
               rest: 90,
-              alts: LEGSUB,
             },
             {
               id: "d2-lc",
@@ -1119,7 +1100,7 @@
               load: 30,
               unit: "kg",
               sets: 3,
-              reps: "12-15회",
+              reps: "15회",
               rest: 60,
             },
             {
@@ -1128,7 +1109,7 @@
               load: 0,
               unit: "맨몸",
               sets: 3,
-              reps: "12-15회",
+              reps: "15회",
               rest: 60,
             },
           ],
@@ -1137,7 +1118,7 @@
           id: "d3",
           num: "DAY 03",
           name: "상체 B",
-          tag: "고반복 · 볼륨",
+          tag: "",
           accent: "#C89614",
           main: [
             {
@@ -1146,14 +1127,13 @@
               load: 35,
               unit: "kg",
               sets: 4,
-              reps: "8-10회",
+              reps: "10회",
               rest: 120,
               plates: true,
             },
             {
               id: "d3-pull",
               name: "풀업",
-              sub: "밴드 보조 가능",
               load: 0,
               unit: "맨몸",
               sets: 4,
@@ -1166,7 +1146,7 @@
               load: 14,
               unit: "kg ×2",
               sets: 3,
-              reps: "10-12회",
+              reps: "12회",
               rest: 90,
             },
             {
@@ -1211,15 +1191,14 @@
           id: "d4",
           num: "DAY 04",
           name: "하체 B",
-          tag: "힌지 중심",
+          tag: "",
           accent: "#22754A",
           main: [
             {
               id: "d4-dl",
               name: "데드리프트",
-              sub: "첫 주 중량 찾기",
               load: 60,
-              unit: "kg~",
+              unit: "kg",
               sets: 3,
               reps: "5회",
               rest: 180,
@@ -1231,19 +1210,17 @@
               load: 12,
               unit: "kg ×2",
               sets: 3,
-              reps: "10회 (한쪽씩)",
+              reps: "10회",
               rest: 90,
             },
             {
               id: "d4-hack",
-              name: "핵스쿼트 또는 레그프레스",
-              sub: "기계별로 조정",
+              name: "레그프레스",
               load: 60,
-              unit: "kg~",
+              unit: "kg",
               sets: 3,
               reps: "12회",
               rest: 90,
-              alts: LEGSUB2,
             },
             {
               id: "d4-ht",
@@ -1251,7 +1228,7 @@
               load: 60,
               unit: "kg",
               sets: 3,
-              reps: "10-12회",
+              reps: "12회",
               rest: 90,
               plates: true,
             },
@@ -1275,13 +1252,11 @@
             },
           ],
         },
-        /* 정해진 종목 없이 그날 하고 싶은 걸 넣는 날.
-           freeform 이라 워밍업·어깨 서킷을 강제하지 않는다. */
         {
           id: "dx",
           num: "EXTRA",
           name: "엑스트라",
-          tag: "자유 · 그날 하고 싶은 것",
+          tag: "",
           accent: "#7B3FA0",
           freeform: true,
           main: [],
@@ -1565,11 +1540,12 @@
 
       function allExercises() {
         var out = [];
+        /* custom 을 먼저 넣어서, 같은 ID 가 있으면 수정된 버전이 우선한다. */
         allDays().forEach(function (day) {
-          WARM.concat(day.main, CIRCUIT).forEach(function (e) {
+          (custom[day.id] || []).forEach(function (e) {
             out.push(e);
           });
-          (custom[day.id] || []).forEach(function (e) {
+          WARM.concat(day.main, CIRCUIT).forEach(function (e) {
             out.push(e);
           });
         });
@@ -1740,7 +1716,6 @@
         h +=
           '<div class="nm">' +
           Gym.esc(ex.name) +
-          (ex.sub ? " <small>(" + Gym.esc(ex.sub) + ")</small>" : "") +
           "</div>";
         h +=
           '<div class="ld">' +
@@ -1891,15 +1866,6 @@
             (day.session ? "1" : "0") +
             '">삭제</button>';
         h += "</div>";
-        if (ex.note) h += '<div class="hint">' + Gym.esc(ex.note) + "</div>";
-        if (ex.alts) {
-          h +=
-            '<div class="alts"><div class="t">자리 없을 때 대체 · 하나만 선택</div><ul>';
-          ex.alts.forEach(function (a) {
-            h += "<li>" + a + "</li>";
-          });
-          h += "</ul></div>";
-        }
         h += "</div></div>";
         return h;
       }
@@ -2045,16 +2011,21 @@
         })[0];
         if (!day) return;
         var added2 = custom[routineId] || [];
+        var hiddenIds = {};
+        added2.forEach(function (e) { if (e._hidden) hiddenIds[e.id] = 1; });
         var warm = day.freeform
-          ? added2.filter(function (e) { return e.grp === "warm"; })
-          : WARM.concat(added2.filter(function (e) { return e.grp === "warm"; }));
+          ? added2.filter(function (e) { return e.grp === "warm" && !e._hidden && !e.override; })
+          : WARM.filter(function (e) { return !hiddenIds[e.id]; })
+              .concat(added2.filter(function (e) { return e.grp === "warm" && !e._hidden && !e.override; }));
+        var mainBase = day.main.filter(function (e) { return !hiddenIds[e.id]; });
         var main = applyOrder(
           routineId,
-          day.main.concat(added2.filter(function (e) { return e.grp !== "warm"; })),
+          mainBase.concat(added2.filter(function (e) { return e.grp !== "warm" && !e._hidden && !e.override; })),
         );
+        var circuit = day.freeform ? [] : CIRCUIT.filter(function (e) { return !hiddenIds[e.id]; });
         /* 웜업 → 메인 → 서킷. 루틴 화면에서 보이는 순서 그대로 담는다. */
         var incoming = warm
-          .concat(main, day.freeform ? [] : CIRCUIT)
+          .concat(main, circuit)
           .map(function (e) { return e.id; });
 
         var cur = sessionIds(date);
@@ -2120,6 +2091,96 @@
         notify(cur.name + " 루틴을 지웠어요.", "good");
       }
 
+      /* 루틴 안의 종목 속성(세트·반복·중량·휴식)을 수정한다.
+         기본 루틴의 종목은 custom 에 override 로 넣는다. */
+      function editExerciseInRoutine(exId, dayId) {
+        var ex = resolveExercise(exId);
+        if (!ex) return;
+        var newLoad = window.prompt("중량 (kg)", ex.load);
+        if (newLoad === null) return;
+        var newSets = window.prompt("세트 수", ex.sets);
+        if (newSets === null) return;
+        var newReps = window.prompt("반복 (예: 12회)", ex.reps);
+        if (newReps === null) return;
+        var newRest = window.prompt("휴식 (초)", ex.rest);
+        if (newRest === null) return;
+
+        var load = parseFloat(newLoad);
+        var sets = parseInt(newSets, 10);
+        var rest = parseInt(newRest, 10);
+        var reps = newReps.trim().slice(0, MAX_REPS);
+
+        /* custom 배열에서 같은 id 를 찾는다 */
+        if (!custom[dayId]) custom[dayId] = [];
+        var found = false;
+        custom[dayId] = custom[dayId].map(function (e) {
+          if (e.id === exId) {
+            found = true;
+            var copy = {};
+            for (var k in e) { if (e.hasOwnProperty(k)) copy[k] = e[k]; }
+            copy.load = isFinite(load) && load >= 0 ? load : e.load;
+            copy.sets = Math.min(MAX_SETS, Math.max(1, sets || e.sets));
+            copy.reps = reps || e.reps;
+            copy.rest = Math.min(MAX_REST, Math.max(0, isFinite(rest) ? rest : e.rest));
+            return copy;
+          }
+          return e;
+        });
+        /* 기본 종목(custom 에 없던 것)이면 override 항목을 추가 */
+        if (!found) {
+          custom[dayId].push({
+            id: ex.id,
+            name: ex.name,
+            load: isFinite(load) && load >= 0 ? load : ex.load,
+            unit: ex.unit,
+            sets: Math.min(MAX_SETS, Math.max(1, sets || ex.sets)),
+            reps: reps || ex.reps,
+            rest: Math.min(MAX_REST, Math.max(0, isFinite(rest) ? rest : ex.rest)),
+            grp: ex.grp || "main",
+            override: true,
+          });
+          if (ex.cat) custom[dayId][custom[dayId].length - 1].cat = ex.cat;
+          if (ex.plates) custom[dayId][custom[dayId].length - 1].plates = true;
+        }
+        saveCustom();
+        render();
+        notify(ex.name + " 을(를) 수정했어요.", "good");
+      }
+
+      /* 기본 루틴의 종목도 삭제할 수 있도록 한다.
+         기본 종목을 삭제하면 custom 에 _hidden 플래그로 기록한다. */
+      function deleteFromRoutine(exId, dayId) {
+        var ex = resolveExercise(exId);
+        var name = ex ? ex.name : exId;
+        if (!window.confirm(name + " 을(를) 루틴에서 뺄까요?")) return;
+
+        /* custom 에 있는 종목인지 확인 */
+        if (!custom[dayId]) custom[dayId] = [];
+        var inCustom = custom[dayId].some(function (e) { return e.id === exId && !e.override; });
+
+        if (inCustom) {
+          /* 사용자가 추가한 종목 — 그냥 지운다 */
+          custom[dayId] = custom[dayId].filter(function (e) { return e.id !== exId; });
+        } else {
+          /* 기본 종목 — hidden 마크를 넣는다 */
+          var alreadyHidden = custom[dayId].some(function (e) { return e.id === exId && e._hidden; });
+          if (!alreadyHidden) {
+            /* override 가 있으면 hidden 으로 바꾼다 */
+            var hadOverride = false;
+            custom[dayId] = custom[dayId].filter(function (e) {
+              if (e.id === exId && e.override) { hadOverride = true; return false; }
+              return true;
+            });
+            custom[dayId].push({ id: exId, _hidden: true });
+          }
+        }
+        delete state.open[exId];
+        state.chartEx = null;
+        saveCustom();
+        render();
+        notify(name + " 을(를) 삭제했어요.", "good");
+      }
+
       function routineToolsHTML(day) {
         if (!day.custom) return "";
         return (
@@ -2165,7 +2226,7 @@
           '">' +
           '<input id="a-reps" maxlength="' +
           MAX_REPS +
-          '" aria-label="반복" placeholder="반복 (예: 10-12회)" value="' +
+          '" aria-label="반복" placeholder="반복 (예: 12회)" value="' +
           (p ? Gym.esc(p.reps) : "") +
           '">' +
           '<input id="a-rest" type="number" min="0" max="' +
@@ -2440,15 +2501,22 @@
           '<div class="dayhead"><div class="num">ROUTINE</div><h2>' +
           Gym.esc(day.name) +
           "</h2><p>" +
-          Gym.esc(day.tag) +
-          " · 여기서 고친 구성은 다음에 불러올 때 반영돼요</p>" +
+          (day.tag ? Gym.esc(day.tag) + " · " : "") +
+          "여기서 고친 구성은 다음에 불러올 때 반영돼요</p>" +
           routineToolsHTML(day) +
           "</div>";
 
         var added = custom[day.id] || [];
-        var addedWarm = added.filter(function (e) { return e.grp === "warm"; });
-        var addedMain = added.filter(function (e) { return e.grp !== "warm"; });
-        var warmBase = day.freeform ? [] : WARM;
+        /* hidden·override 항목은 별도 표시하지 않는다 */
+        var hiddenIds = {};
+        var overrideIds = {};
+        added.forEach(function (e) {
+          if (e._hidden) hiddenIds[e.id] = 1;
+          if (e.override) overrideIds[e.id] = 1;
+        });
+        var addedWarm = added.filter(function (e) { return e.grp === "warm" && !e._hidden && !e.override; });
+        var addedMain = added.filter(function (e) { return e.grp !== "warm" && !e._hidden && !e.override; });
+        var warmBase = day.freeform ? [] : WARM.filter(function (e) { return !hiddenIds[e.id]; });
 
         if (warmBase.length || addedWarm.length) {
           h += '<div class="grp warm"><div class="grp-label">WARM-UP</div>';
@@ -2459,11 +2527,12 @@
 
         var customIds = {};
         addedMain.forEach(function (e) { customIds[e.id] = 1; });
+        var mainBase = day.main.filter(function (e) { return !hiddenIds[e.id]; });
         h +=
           '<div class="grp main"><div class="grp-label">' +
           (day.freeform ? "종목" : "MAIN") +
           "</div>";
-        var mainList = applyOrder(day.id, day.main.concat(addedMain));
+        var mainList = applyOrder(day.id, mainBase.concat(addedMain));
         mainList.forEach(function (ex) {
           h += exRoutineRow(ex, day, !!customIds[ex.id]);
         });
@@ -2473,8 +2542,9 @@
         h += "</div>";
 
         if (!day.freeform) {
+          var circuitBase = CIRCUIT.filter(function (e) { return !hiddenIds[e.id]; });
           h += '<div class="grp circuit"><div class="grp-label">어깨 슈퍼세트</div>';
-          CIRCUIT.forEach(function (ex) { h += exRoutineRow(ex, day, false); });
+          circuitBase.forEach(function (ex) { h += exRoutineRow(ex, day, false); });
           h += "</div>";
         }
 
@@ -2482,29 +2552,30 @@
         return h;
       }
 
-      /* 루틴 편집에서는 세트 입력이 필요 없다. 구성만 보여준다. */
+      /* 루틴 편집 — 구성을 보여주고 세트·반복·중량·휴식을 수정할 수 있다. */
       function exRoutineRow(ex, day, isCustom) {
+        /* custom 에 같은 ID 가 있으면 수정된 값을 반영한다 */
+        var resolved = resolveExercise(ex.id);
         var h =
           '<div class="card"><div class="row" style="cursor:default">' +
           '<div class="nm">' +
-          Gym.esc(ex.name) +
+          Gym.esc(resolved.name) +
           "</div>" +
           '<div class="ld">' +
-          (ex.load ? ex.load + "<small>" + Gym.esc(ex.unit) + "</small>" : Gym.esc(ex.unit)) +
+          (resolved.load ? resolved.load + "<small>" + Gym.esc(resolved.unit) + "</small>" : Gym.esc(resolved.unit)) +
           "</div>" +
-          '<div class="mt">' + ex.sets + "세트 × " + Gym.esc(ex.reps) + "</div>" +
+          '<div class="mt">' + resolved.sets + "세트 × " + Gym.esc(resolved.reps) + "</div>" +
           '<div class="rt">' +
-          (ex.rest ? "휴식 " + ex.rest + "초" : "연속") +
+          (resolved.rest ? "휴식 " + resolved.rest + "초" : "연속") +
           "</div></div>";
-        if (isCustom || !day.freeform) {
-          h += '<div class="panel" style="display:block"><div class="ptools" style="margin:0">';
-          h +=
-            '<button class="btn" data-up="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↑</button>' +
-            '<button class="btn" data-down="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↓</button>';
-          if (isCustom)
-            h += '<button class="btn warnbtn" data-del="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">삭제</button>';
-          h += "</div></div>";
-        }
+        h += '<div class="panel" style="display:block"><div class="ptools" style="margin:0">';
+        h +=
+          '<button class="btn" data-up="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↑</button>' +
+          '<button class="btn" data-down="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">↓</button>';
+        h +=
+          '<button class="btn" data-editex="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">수정</button>';
+        h += '<button class="btn warnbtn" data-del="' + Gym.esc(ex.id) + '" data-day="' + Gym.esc(day.id) + '">삭제</button>';
+        h += "</div></div>";
         return h + "</div>";
       }
 
@@ -2512,9 +2583,13 @@
       /* 루틴을 식별하는 종목만 본다. 워밍업·서킷은 모든 요일에 공유돼서
          마지막 수행일을 재는 데 쓰면 요일 구분이 안 된다. */
       function routineIds(day) {
-        return day.main.concat(custom[day.id] || []).map(function (e) {
-          return e.id;
-        });
+        var added = custom[day.id] || [];
+        var hiddenIds = {};
+        added.forEach(function (e) { if (e._hidden) hiddenIds[e.id] = 1; });
+        return day.main
+          .filter(function (e) { return !hiddenIds[e.id]; })
+          .concat(added.filter(function (e) { return !e._hidden && !e.override; }))
+          .map(function (e) { return e.id; });
       }
 
       function routineLastDate(day) {
@@ -2704,8 +2779,77 @@
           '<textarea id="s-memo" class="memofld" maxlength="500" rows="3" ' +
           'aria-label="오늘 메모" placeholder="오늘 운동은 어땠나요? 간단히 적어두시면 다음에 도움이 돼요.">' +
           Gym.esc(note.memo || "") +
-          "</textarea></div>";
+          "</textarea>" +
+          '<div class="ptools" style="margin-top:8px">' +
+          '<button class="btn" id="share-day" data-sharedate="' + Gym.esc(date) + '">오늘 기록 공유</button>' +
+          "</div></div>";
         return h;
+      }
+
+      function buildShareText(date) {
+        var cal = Gym.buildCalendar(logs);
+        var day = cal[date];
+        var note = days[date] || {};
+        var ids = sessionIds(date);
+        if (!day && !ids.length) return null;
+
+        var lines = [];
+        lines.push("🏋️ " + Gym.shortDate(date) + " 운동 기록");
+        lines.push("");
+
+        if (note.min) lines.push("⏱ " + Gym.formatDuration(note.min));
+        if (day) {
+          lines.push("📊 " + day.count + "종목 · " + day.sets + "세트 · " + Gym.formatNumber(day.volume) + "kg");
+        }
+        lines.push("");
+
+        ids.forEach(function (id) {
+          var ex = resolveExercise(id);
+          var entry = Gym.entryFor(logs, id, date);
+          if (!entry) return;
+          var used = entry.sets.filter(function (s) {
+            return s.w != null || s.r != null || s.done;
+          });
+          if (!used.length) return;
+          lines.push("• " + ex.name + "  " + Gym.formatSetLine(used));
+        });
+
+        if (note.memo) {
+          lines.push("");
+          lines.push("📝 " + note.memo);
+        }
+        return lines.join("\n");
+      }
+
+      function shareDay(date) {
+        var text = buildShareText(date);
+        if (!text) {
+          notify("공유할 기록이 없어요.");
+          return;
+        }
+        if (navigator.share) {
+          navigator.share({ text: text }).catch(function () {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(text).then(function () {
+            notify("클립보드에 복사했어요.", "good");
+          }, function () {
+            fallbackCopy(text);
+          });
+        } else {
+          fallbackCopy(text);
+        }
+      }
+
+      function fallbackCopy(text) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        notify("클립보드에 복사했어요.", "good");
       }
 
       /* ---------- 캘린더 ---------- */
@@ -3415,7 +3559,7 @@
 
       /* ============ events ============ */
       var CLICK_SELECTOR =
-        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-donex],[data-swap],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del]," +
+        "[data-section],[data-start],[data-panel],[data-loadroutine],[data-editroutine],[data-donex],[data-swap],[data-daytab],[data-addset],[data-delset],[data-up],[data-down],[data-rname],[data-rdel],[data-toggle],[data-done],[data-rest],[data-form],[data-fill],[data-del],[data-editex],[data-sharedate]," +
         "[data-cal],[data-calday],[data-cat],[data-pick],[data-date],[data-jump]," +
         "#a-go,#a-clear,#date-today,#d-export,#d-import,#d-reset,#nav-tips,#chip-new,[data-grp]," +
         "#s-update,#s-purge,#do-install,#day-done,#swap-cancel,#nav-settings,[data-theme-set],[data-metric],#alert";
@@ -3560,7 +3704,7 @@
                 : 0,
           unit: pick ? pick.unit : "kg",
           sets: Math.min(MAX_SETS, Math.max(1, sets || (pick ? pick.sets : 3))),
-          reps: reps || (pick ? pick.reps : "10-12회"),
+          reps: reps || (pick ? pick.reps : "12회"),
           rest: Math.min(
             MAX_REST,
             Math.max(0, isFinite(rest) ? rest : pick ? pick.rest : 60),
@@ -3984,9 +4128,19 @@
           fillFromPrev(t.dataset.fill);
           return;
         }
+        if (t.dataset.editex) {
+          editExerciseInRoutine(t.dataset.editex, t.dataset.day);
+          return;
+        }
+        if (t.dataset.sharedate) {
+          shareDay(t.dataset.sharedate);
+          return;
+        }
         if (t.dataset.del) {
           if (t.dataset.session === "1")
             removeFromSession(t.dataset.day, t.dataset.del);
+          else if (state.section === "routine")
+            deleteFromRoutine(t.dataset.del, t.dataset.day);
           else deleteExercise(t.dataset.day, t.dataset.del);
           return;
         }

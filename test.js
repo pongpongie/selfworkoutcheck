@@ -284,7 +284,7 @@ describe('sanitizeCustom', function(){
 
   eq('빠진 값은 기본값으로',
      Gym.sanitizeCustom({ d1: [{ id: 'a', name: '풀오버' }] }),
-     { d1: [{ id: 'a', name: '풀오버', load: 0, unit: 'kg', sets: 3, reps: '10-12회', rest: 60 }] });
+     { d1: [{ id: 'a', name: '풀오버', load: 0, unit: 'kg', sets: 3, reps: '12회', rest: 60 }] });
 
   var clamped = Gym.sanitizeCustom({ d1: [{ id: 'a', name: 'x', sets: 999, rest: 99999, load: 5000 }] }).d1[0];
   eq('세트 수를 상한으로 자른다', clamped.sets, 20);
@@ -336,7 +336,7 @@ describe('sanitizeLibrary', function(){
   var one = Gym.sanitizeLibrary([{ id: 'my-1', name: '케이블 로우', cat: 'back' }])[0];
   eq('부위가 남는다', one.cat, 'back');
   eq('빠진 값은 기본값', [one.load, one.unit, one.sets, one.reps, one.rest],
-     [0, 'kg', 3, '10-12회', 60]);
+     [0, 'kg', 3, '12회', 60]);
 
   var dup = Gym.sanitizeLibrary([{ id: 'a', name: '첫번째' }, { id: 'a', name: '중복' }]);
   eq('id 중복은 하나만', dup.length, 1);

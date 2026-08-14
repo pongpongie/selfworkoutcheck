@@ -326,6 +326,11 @@
       var list = [];
       arr.forEach(function (ex) {
         if (!ex || typeof ex.id !== 'string' || !ex.id) return;
+        /* 숨김 항목 — 기본 종목을 루틴에서 뺄 때 쓴다 */
+        if (ex._hidden) {
+          list.push({ id: ex.id.slice(0, MAX_NAME), _hidden: true });
+          return;
+        }
         var name = str(ex.name, MAX_NAME, null);
         if (!name) return;
         var item = {
@@ -334,7 +339,7 @@
           load: num(ex.load, MAX_LOAD) || 0,
           unit: str(ex.unit, MAX_UNIT, 'kg'),
           sets: Math.min(MAX_SETS, Math.max(1, parseInt(ex.sets, 10) || 3)),
-          reps: str(ex.reps, MAX_REPS, '10-12회'),
+          reps: str(ex.reps, MAX_REPS, '12회'),
           rest: Math.min(MAX_REST, Math.max(0, parseInt(ex.rest, 10) || 60))
         };
         /* 부위 태그와 원판 표시 여부는 백업 왕복에서 잃지 않는다. */
@@ -342,6 +347,7 @@
         if (cat) item.cat = cat;
         if (ex.grp === 'warm') item.grp = 'warm';
         if (ex.plates) item.plates = true;
+        if (ex.override) item.override = true;
         list.push(item);
       });
       if (list.length) out[String(dayId)] = list;
@@ -370,7 +376,7 @@
         load: num(ex.load, MAX_LOAD) || 0,
         unit: str(ex.unit, MAX_UNIT, 'kg'),
         sets: Math.min(MAX_SETS, Math.max(1, parseInt(ex.sets, 10) || 3)),
-        reps: str(ex.reps, MAX_REPS, '10-12회'),
+        reps: str(ex.reps, MAX_REPS, '12회'),
         rest: Math.min(MAX_REST, Math.max(0, parseInt(ex.rest, 10) || 60))
       };
       var cat = str(ex.cat, MAX_UNIT, null);
